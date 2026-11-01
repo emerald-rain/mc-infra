@@ -3,8 +3,8 @@
 # Использование: ./restore.sh && docker compose up -d
 set -euo pipefail
 
-# Где лежит мир. Сейчас — локальная папка вместо R2; потом станет "r2:mc-world".
-REMOTE="${REMOTE:-r2:$HOME/fake-r2/mc-world}"
+# Где лежит мир (rclone remote:бакет). Переопределяется переменной REMOTE.
+REMOTE="${REMOTE:-r2:mc-world}"
 
 # Папка minecraft/ (на уровень выше scripts/), чтобы скрипт работал из любой текущей папки.
 MC_DIR="$(cd "$(dirname "$0")/.." && pwd)"
