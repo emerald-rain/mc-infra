@@ -1,0 +1,31 @@
+services:
+  minecraft-server:
+    image: itzg/minecraft-server:latest
+    ports:
+      - "25565:25565"
+    environment:
+      TYPE: "FABRIC"
+      VERSION: "26.3"
+      MEMORY: "80%"
+      EULA: "TRUE"
+
+      DIFFICULTY: "hard"
+      VIEW_DISTANCE: "12"
+      SIMULATION_DISTANCE: "6"
+      SPAWN_PROTECTION: "0"
+      SYNC_CHUNK_WRITES: "false"
+      MOTD: "§6KLADNASH IMMORTAL §8v:2§r\n§5Lovely❣ §6☀§r Vanilla+§8  v:26.3"
+      SEED: ${MC_SEED}
+
+      MODRINTH_PROJECTS: |
+        fabric-api:0.165.0+26.3
+        lithium:mc26.3-0.26.3-fabric
+        ferrite-core:9.0.0-fabric
+        chunky:1.5.3
+        quickleafdecay:1.0.0
+        nocroptrample:1.6-26.3
+    volumes:
+      - ./data:/data
+      - ./config:/config:ro
+#      - ./mods:/mods:ro
+    stop_grace_period: 60s

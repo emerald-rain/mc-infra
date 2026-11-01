@@ -1,3 +1,6 @@
 .env
 *.key
+*.old
+
+minecraft/data/
 secrets/
