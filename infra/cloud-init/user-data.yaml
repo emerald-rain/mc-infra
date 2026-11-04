@@ -6,6 +6,7 @@ package_upgrade: true
 packages:
   - btop
   - micro
+  - rclone
   - docker.io
   - docker-cli          # docker.io only recommends it on Debian 13
   - docker-compose
