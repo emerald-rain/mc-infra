@@ -11,7 +11,7 @@ WORLD_DIR="$DATA_DIR/world"
 LATEST_BACKUP_NAME="$(rclone lsf "$REMOTE/backups/" | sort | tail -n 1)"
 [ -n "$LATEST_BACKUP_NAME" ] || { echo "ERROR: no backups in $REMOTE/backups/" >&2; exit 1; }
 
-ARCHIVE_PATH="$(mktemp --suffix=.tar.zst)"
+ARCHIVE_PATH="$(mktemp -p /var/tmp --suffix=.tar.zst)"
 trap 'rm -f "$ARCHIVE_PATH"' EXIT
 
 echo "Downloading $REMOTE/backups/$LATEST_BACKUP_NAME ..."

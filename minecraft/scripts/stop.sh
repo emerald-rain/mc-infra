@@ -12,7 +12,7 @@ DATA_DIR="$MC_DIR/data"
 TIMESTAMP="$(date --utc +%Y-%m-%dT%H:%M:%SZ)"
 BACKUP_NAME="$TIMESTAMP.tar.zst"
 
-ARCHIVE_PATH="$(mktemp --suffix=.tar.zst)"
+ARCHIVE_PATH="$(mktemp -p /var/tmp --suffix=.tar.zst)"
 trap 'rm -f "$ARCHIVE_PATH"' EXIT
 
 # A stopped server writes nothing, so the world on disk is consistent.
