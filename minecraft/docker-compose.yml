@@ -1,5 +1,6 @@
 services:
-  minecraft-server:
+  mc-server:
+    container_name: mc-server
     image: itzg/minecraft-server:latest
     ports:
       - "25565:25565"
