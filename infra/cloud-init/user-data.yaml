@@ -1,42 +1,45 @@
 #cloud-config
-# Первая строка обязательна: по ней cloud-init понимает формат файла.
-# Этот файл вставляется в поле "Cloud config" при создании сервера в Hetzner.
+# Paste into the "Cloud config" field when creating a server in Hetzner.
 
-# --- Шаг 4.3 (замена): обновляем систему один раз при создании ---
-package_update: true    # apt update
-package_upgrade: true   # apt upgrade -y
+package_update: true
+package_upgrade: true
 packages:
-  - tmux
-  - htop
-  - docker.io           # Docker из репозитория Debian: только демон dockerd
-  - docker-cli          # команда docker (у docker.io она лишь в Recommends)
-  - docker-compose      # в Debian 13 это уже Compose v2
+  - btop
+  - micro
+  - docker.io
+  - docker-cli          # docker.io only recommends it on Debian 13
+  - docker-compose
 
-# --- Шаг 2: свой пользователь и ключ ---
 users:
   - name: malysh
-    groups: [docker]                # то же, что usermod -aG docker
+    groups: [docker]
     shell: /bin/bash
-    lock_passwd: true               # пароля нет вообще -> войти можно только по ключу
+    lock_passwd: true   # no password, key-only login
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFV3k2PXPkmuK0d1rBJSbeHNQjeSnOwWAYYfEjgRJVTN malysh-laptop
-    # Пароля нет, поэтому sudo без пароля. Защиту даёт passphrase на ключе.
     sudo: "ALL=(ALL:ALL) NOPASSWD:ALL"
 
-# --- Шаг 3: закрываем SSH ---
-ssh_pwauth: false       # cloud-init сам выключит PasswordAuthentication
-disable_root: true      # root не сможет войти по ключам, которые добавил Hetzner
+ssh_pwauth: false
+disable_root: true
+
+swap:
+  filename: /swapfile
+  size: 2G
 
 write_files:
-  - path: /etc/ssh/sshd_config.d/10-hardening.conf
+  - path: /etc/ssh/sshd_config.d/10-hardening.conf   # "10-": sshd uses the first value it finds
     permissions: "0644"
     content: |
       PermitRootLogin no
       PasswordAuthentication no
       KbdInteractiveAuthentication no
       AllowUsers malysh
+  - path: /etc/sysctl.d/99-swappiness.conf
+    permissions: "0644"
+    content: |
+      vm.swappiness=10
 
 runcmd:
   - [systemctl, reload, ssh]
-  # Проверка: если docker не работает, команда упадёт и cloud-init покажет ошибку
-  - [docker, run, --rm, hello-world]
+  - [sysctl, --system]
+  - [docker, run, --rm, hello-world]   # fails loudly if docker is broken
