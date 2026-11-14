@@ -1,0 +1,31 @@
+name = "mc-admin"
+main = "worker/index.js"
+compatibility_date = "2026-11-01"
+
+# The site: static files, served by the Worker after the password check
+[assets]
+directory = "site"
+binding = "ASSETS"
+run_worker_first = true
+
+# Import server/cloud-init.yaml as a plain string
+[[rules]]
+type = "Text"
+globs = ["**/*.yaml"]
+fallthrough = true
+
+# Deletes the server once its backup is done
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+SERVER_NAME = "mc"
+MC_HOSTNAME = "mc.knash.party"
+AGENT_URL = "https://agent.knash.party"
+SERVER_TYPE = "cpx12"
+LOCATION = "nbg1"
+FIREWALL_NAME = "dev-fw"
+SSH_KEY_NAME = "malysh-laptop"
+R2_ENDPOINT = "https://a48fd80d5d5a24bcf34c2d4d7f4cd806.r2.cloudflarestorage.com"
+
+# Secrets: see .dev.vars.example. Locally in .dev.vars, in prod: npx wrangler secret bulk .dev.vars

@@ -2,6 +2,9 @@
 # Restores the latest world backup from R2 and starts the server.
 set -euo pipefail
 
+# rclone's R2 remote is configured by RCLONE_CONFIG_R2_* variables in this file
+set -a; source /etc/mc.env; set +a
+
 REMOTE="${REMOTE:-r2:mc-world}"
 MC_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_DIR="$MC_DIR/data"

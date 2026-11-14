@@ -75,11 +75,10 @@
     restoring:     ["Restoring world", "yellow", "Downloading the latest backup from R2.", null],
     starting:      ["Starting", "yellow", "Minecraft is loading the world.", "stop"],
     online:        ["Online", "green", "Join and have fun.", "stop"],
-    stopped:       ["Stopped", "red", "The server exited by itself. Stop to back up and delete it.", "stop"],
+    stopped:       ["Stopped", "red", "Minecraft is not running. Stop to back up and delete the server.", "stop"],
     backing_up:    ["Backing up", "yellow", "Saving the world to R2. Do not worry about closing the tab.", null],
     deleting:      ["Deleting", "yellow", "Backup done, the server is being deleted.", null],
     backup_failed: ["Backup failed", "red", "The server is kept. Check the log and retry.", "stop"],
-    docker_error:  ["Docker error", "red", "Docker on the server does not respond, check it over SSH.", null],
   };
   const $ = (id) => document.getElementById(id);
   let busy = false;

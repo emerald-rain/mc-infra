@@ -2,7 +2,6 @@
 HETZNER_TOKEN=
 R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
-MC_SEED=
 
 #   https://dash.cloudflare.com/profile/api-tokens
 #   Create Token - Create Token - Edit zone DNS 

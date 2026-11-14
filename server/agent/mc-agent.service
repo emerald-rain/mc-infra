@@ -5,9 +5,9 @@ Wants=network-online.target
 
 [Service]
 User=malysh
-# AGENT_TOKEN comes from the same .env as docker compose
-EnvironmentFile=/home/malysh/mc-infra/minecraft/.env
-ExecStart=/usr/bin/python3 /home/malysh/mc-infra/minecraft/agent/agent.py
+# AGENT_TOKEN and the R2 settings stop.sh needs
+EnvironmentFile=/etc/mc.env
+ExecStart=/usr/bin/python3 /home/malysh/mc-infra/server/agent/agent.py
 Restart=on-failure
 
 [Install]

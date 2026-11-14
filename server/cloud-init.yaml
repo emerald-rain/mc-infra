@@ -1,5 +1,5 @@
 #cloud-config
-# Template: the panel fills in __PLACEHOLDERS__ (base64 secrets) and sends it as user_data.
+# Template: the panel fills in the secrets placeholder (base64 of /etc/mc.env) and sends it as user_data.
 # Code comes from the public repo; secrets never go to git.
 
 package_update: true
@@ -42,29 +42,21 @@ write_files:
     permissions: "0644"
     content: |
       vm.swappiness=10
-  # Deferred: written after user malysh exists. Secrets only, the code is cloned in runcmd.
-  - path: /home/malysh/mc-infra/minecraft/.env
+  # All server secrets in one file. Deferred: written after user malysh exists.
+  - path: /etc/mc.env
     owner: malysh:malysh
     permissions: "0600"
     encoding: b64
     content: __MC_ENV__
-    defer: true
-  - path: /home/malysh/.config/rclone/rclone.conf
-    owner: malysh:malysh
-    permissions: "0600"
-    encoding: b64
-    content: __RCLONE_CONF__
     defer: true
 
 runcmd:
   - [systemctl, reload, ssh]
   - [sysctl, --system]
   - [docker, run, --rm, hello-world]   # fails loudly if docker is broken
-  # write_files created the parent dirs as root; clone into the existing dir keeps .env in place
-  - [chown, -R, "malysh:malysh", /home/malysh/mc-infra, /home/malysh/.config]
-  - [su, -, malysh, -c, "git -C mc-infra init -q && git -C mc-infra pull -q https://github.com/emerald-rain/mc-infra.git main"]
+  - [su, -, malysh, -c, "git clone -q https://github.com/emerald-rain/mc-infra.git"]
   # Agent and tunnel first, so the panel sees the server while the world is being restored
-  - [cp, /home/malysh/mc-infra/minecraft/agent/mc-agent.service, /etc/systemd/system/]
+  - [cp, /home/malysh/mc-infra/server/agent/mc-agent.service, /etc/systemd/system/]
   - [systemctl, enable, --now, mc-agent]
-  - [su, -, malysh, -c, "docker compose -f mc-infra/minecraft/docker-compose.yml up -d cloudflared"]
-  - [su, -, malysh, -c, "mc-infra/minecraft/scripts/start.sh"]
+  - [su, -, malysh, -c, "docker compose -f mc-infra/server/docker-compose.yml up -d cloudflared"]
+  - [su, -, malysh, -c, "mc-infra/server/agent/start.sh"]

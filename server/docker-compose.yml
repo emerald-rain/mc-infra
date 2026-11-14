@@ -27,7 +27,6 @@ services:
       SPAWN_PROTECTION: "0"
       SYNC_CHUNK_WRITES: "false"
       MOTD: "§6KLADNASH IMMORTAL §8v:2§r\n§5Lovely❣ §6☀§r Vanilla+§8  v:26.3"
-      SEED: ${MC_SEED}
 
       MODRINTH_PROJECTS: |
         fabric-api:0.165.0+26.3
@@ -48,7 +47,6 @@ services:
     container_name: cloudflared
     image: cloudflare/cloudflared:latest
     command: tunnel --no-autoupdate run
-    environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+    env_file: /etc/mc.env   # TUNNEL_TOKEN
     network_mode: host
     restart: unless-stopped

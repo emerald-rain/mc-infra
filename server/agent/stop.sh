@@ -2,6 +2,9 @@
 # Stops the server, uploads the world to R2 and keeps only the latest backups.
 set -euo pipefail
 
+# rclone's R2 remote is configured by RCLONE_CONFIG_R2_* variables in this file
+set -a; source /etc/mc.env; set +a
+
 KEEP_BACKUPS=4
 
 REMOTE="${REMOTE:-r2:mc-world}"

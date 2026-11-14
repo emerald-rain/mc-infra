@@ -9,7 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 AGENT_TOKEN = os.environ["AGENT_TOKEN"]
 PORT = int(os.environ.get("AGENT_PORT", "8080"))
-SCRIPTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts")
+SCRIPTS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # State of the last stop.sh run: idle, running, done, failed
 stop_state = {"status": "idle", "log": ""}
