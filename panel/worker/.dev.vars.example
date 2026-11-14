@@ -3,13 +3,23 @@ HETZNER_TOKEN=
 R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
 MC_SEED=
-# Cloudflare API token: Zone > DNS > Edit, only zone knash.party
-CF_API_TOKEN=CHANGE_ME
-# Zone ID: Cloudflare dashboard > knash.party > Overview
-CF_ZONE_ID=CHANGE_ME
-# Zero Trust > Networks > Tunnels: token of the tunnel with agent.knash.party -> http://localhost:8080
-TUNNEL_TOKEN=CHANGE_ME
-# Shared secret between the Worker and the agent: openssl rand -hex 32
-AGENT_TOKEN=CHANGE_ME
-# Panel login password (any username)
-PANEL_PASSWORD=CHANGE_ME
+
+#   https://dash.cloudflare.com/profile/api-tokens
+#   Create Token - Create Token - Edit zone DNS 
+#   Policies: Include + Specific zone + site.com
+CF_API_TOKEN=
+
+#   https://dash.cloudflare.com/
+#   Domains - site.com - API/Zone ID (right panel at the bottom)
+CF_ZONE_ID=
+
+#   Networking > Tunnels: token of the tunnel with 
+#   agent.knash.party -> http://localhost:8080
+TUNNEL_TOKEN=
+
+#   Shared secret between the Worker and the agent: 
+#   openssl rand -hex 32
+AGENT_TOKEN=
+
+#   Panel login password (any username)
+PANEL_PASSWORD=
