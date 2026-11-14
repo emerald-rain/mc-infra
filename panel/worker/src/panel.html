@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MC Panel</title>
+<style>
+  :root {
+    --bg: #f4f4f2; --card: #fff; --text: #1d1d1b; --muted: #6b6b66; --line: #e2e2dc;
+    --green: #2f9e44; --yellow: #d9a400; --red: #d9480f; --gray: #9a9a94; --accent: #1d1d1b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141413; --card: #1e1e1c; --text: #ececea; --muted: #9a9a94; --line: #30302d;
+      --accent: #ececea;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px;
+    background: var(--bg); color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .card {
+    width: 100%; max-width: 420px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 16px; padding: 24px;
+  }
+  h1 { margin: 0 0 20px; font-size: 18px; font-weight: 600; }
+  .state { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 600; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--gray); flex: none; }
+  .dot.green { background: var(--green); }
+  .dot.yellow { background: var(--yellow); animation: pulse 1.2s ease-in-out infinite; }
+  .dot.red { background: var(--red); }
+  @keyframes pulse { 50% { opacity: .35; } }
+  .hint { color: var(--muted); font-size: 14px; margin: 4px 0 20px; min-height: 21px; }
+  .address {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 20px;
+    font-family: ui-monospace, monospace; font-size: 15px;
+  }
+  .address button { padding: 4px 10px; font-size: 13px; }
+  button {
+    font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--line);
+    background: transparent; color: var(--text); padding: 12px;
+  }
+  button.primary { width: 100%; background: var(--accent); color: var(--card); border-color: var(--accent); font-weight: 600; }
+  button:disabled { opacity: .4; cursor: default; }
+  .error { color: var(--red); font-size: 14px; margin-top: 12px; white-space: pre-wrap; }
+  pre {
+    margin: 16px 0 0; padding: 12px; border-radius: 10px; background: var(--bg);
+    font-size: 12px; max-height: 240px; overflow: auto; white-space: pre-wrap; word-break: break-all;
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main class="card">
+  <h1>Minecraft server</h1>
+  <div class="state"><span class="dot" id="dot"></span><span id="state">Loading…</span></div>
+  <div class="hint" id="hint"></div>
+  <div class="address" id="address" hidden>
+    <span id="hostname"></span>
+    <button id="copy" type="button">Copy</button>
+  </div>
+  <button class="primary" id="action" type="button" hidden></button>
+  <div class="error" id="error" hidden></div>
+  <pre id="log" hidden></pre>
+</main>
+<script>
+  // label, dot color, hint, action button ("start" | "stop" | null)
+  const STATES = {
+    none:          ["Offline", "gray", "No server, the world is safe in R2.", "start"],
+    creating:      ["Creating", "yellow", "Hetzner is creating the server.", null],
+    booting:       ["Booting", "yellow", "Installing packages, a few minutes.", null],
+    restoring:     ["Restoring world", "yellow", "Downloading the latest backup from R2.", null],
+    starting:      ["Starting", "yellow", "Minecraft is loading the world.", "stop"],
+    online:        ["Online", "green", "Join and have fun.", "stop"],
+    stopped:       ["Stopped", "red", "The server exited by itself. Stop to back up and delete it.", "stop"],
+    backing_up:    ["Backing up", "yellow", "Saving the world to R2. Do not worry about closing the tab.", null],
+    deleting:      ["Deleting", "yellow", "Backup done, the server is being deleted.", null],
+    backup_failed: ["Backup failed", "red", "The server is kept. Check the log and retry.", "stop"],
+    docker_error:  ["Docker error", "red", "Docker on the server does not respond, check it over SSH.", null],
+  };
+  const $ = (id) => document.getElementById(id);
+  let busy = false;
+
+  function showError(text) {
+    $("error").textContent = text || "";
+    $("error").hidden = !text;
+  }
+
+  function render(data) {
+    const [label, color, hint, action] = STATES[data.state] || [data.state, "gray", "", null];
+    $("state").textContent = label;
+    $("dot").className = "dot " + color;
+    $("hint").textContent = hint;
+    $("hostname").textContent = data.hostname;
+    $("address").hidden = !["starting", "online"].includes(data.state);
+    $("log").textContent = data.log || "";
+    $("log").hidden = !data.log;
+    const button = $("action");
+    button.hidden = !action;
+    button.textContent = action === "start" ? "Start server" : data.state === "backup_failed" ? "Retry backup" : "Stop server";
+    button.dataset.action = action || "";
+    button.disabled = busy;
+  }
+
+  async function api(method, path) {
+    const res = await fetch(path, { method });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    return data;
+  }
+
+  async function refresh() {
+    try {
+      render(await api("GET", "/api/status"));
+    } catch (err) {
+      showError(err.message);
+    }
+  }
+
+  $("action").addEventListener("click", async () => {
+    const action = $("action").dataset.action;
+    if (action === "stop" && !confirm("Stop the server? Players will be kicked.")) return;
+    busy = true;
+    $("action").disabled = true;
+    showError("");
+    try {
+      await api("POST", `/api/${action}`);
+    } catch (err) {
+      showError(err.message);
+    }
+    busy = false;
+    await refresh();
+  });
+
+  $("copy").addEventListener("click", async () => {
+    await navigator.clipboard.writeText($("hostname").textContent);
+    $("copy").textContent = "Copied";
+    setTimeout(() => ($("copy").textContent = "Copy"), 1500);
+  });
+
+  refresh();
+  setInterval(refresh, 5000);
+</script>
+</body>
+</html>

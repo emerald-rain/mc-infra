@@ -1,0 +1,26 @@
+name = "mc-admin"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+# Import the cloud-init template and the panel page as plain strings
+[[rules]]
+type = "Text"
+globs = ["**/*.yaml", "**/*.html"]
+fallthrough = true
+
+# Deletes the server once the agent reports the backup done
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+SERVER_NAME = "mc"
+MC_HOSTNAME = "mc.knash.party"
+SERVER_TYPE = "cpx12"
+LOCATION = "nbg1"
+FIREWALL_NAME = "dev-fw"
+SSH_KEY_NAME = "malysh-laptop"
+R2_ENDPOINT = "https://a48fd80d5d5a24bcf34c2d4d7f4cd806.r2.cloudflarestorage.com"
+# Public hostname of the tunnel to the agent
+AGENT_URL = "https://agent.knash.party"
+
+# Secrets (.dev.vars locally, `npx wrangler secret put NAME` in prod):
+# HETZNER_TOKEN, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, MC_SEED, CF_API_TOKEN, CF_ZONE_ID, TUNNEL_TOKEN, AGENT_TOKEN, PANEL_PASSWORD

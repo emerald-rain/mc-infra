@@ -1,0 +1,14 @@
+[Unit]
+Description=Minecraft panel agent
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+User=malysh
+# AGENT_TOKEN comes from the same .env as docker compose
+EnvironmentFile=/home/malysh/mc-infra/minecraft/.env
+ExecStart=/usr/bin/python3 /home/malysh/mc-infra/minecraft/agent/agent.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

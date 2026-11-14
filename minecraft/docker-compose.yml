@@ -41,3 +41,14 @@ services:
       - ./config:/config:ro
 #      - ./mods:/mods:ro
     stop_grace_period: 60s
+
+  # Tunnel to the panel agent (agent.knash.party -> localhost:8080, set in the Zero Trust dashboard).
+  # Host network: the agent listens on the host's localhost. stop.sh stops only mc-server.
+  cloudflared:
+    container_name: cloudflared
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+    network_mode: host
+    restart: unless-stopped
