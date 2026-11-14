@@ -1,6 +1,10 @@
 #cloud-config
-# Template: the panel fills in the secrets placeholder (base64 of /etc/mc.env) and sends it as user_data.
+# First boot of the server. The panel sends this file as Hetzner user_data,
+# with the content of /etc/mc.env filled in (base64 secrets, see below).
 # Code comes from the public repo; secrets never go to git.
+
+
+# --- Packages ------------------------------------------------------------
 
 package_update: true
 package_upgrade: true
@@ -14,17 +18,23 @@ packages:
   - docker-cli          # docker.io only recommends it on Debian 13
   - docker-compose
 
+
+# --- User and SSH: key-only login as malysh ------------------------------
+
 users:
   - name: malysh
     groups: [docker]
     shell: /bin/bash
-    lock_passwd: true   # no password, key-only login
+    lock_passwd: true
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFV3k2PXPkmuK0d1rBJSbeHNQjeSnOwWAYYfEjgRJVTN malysh-laptop
     sudo: "ALL=(ALL:ALL) NOPASSWD:ALL"
 
 ssh_pwauth: false
 disable_root: true
+
+
+# --- System --------------------------------------------------------------
 
 swap:
   filename: /swapfile
@@ -38,17 +48,22 @@ write_files:
       PasswordAuthentication no
       KbdInteractiveAuthentication no
       AllowUsers malysh
+
   - path: /etc/sysctl.d/99-swappiness.conf
     permissions: "0644"
     content: |
       vm.swappiness=10
-  # All server secrets in one file. Deferred: written after user malysh exists.
+
+  # All server secrets: tunnel, agent token, R2. Deferred: written after user malysh exists.
   - path: /etc/mc.env
     owner: malysh:malysh
     permissions: "0600"
     encoding: b64
     content: __MC_ENV__
     defer: true
+
+
+# --- Start ---------------------------------------------------------------
 
 runcmd:
   - [systemctl, reload, ssh]

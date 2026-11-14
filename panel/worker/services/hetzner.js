@@ -1,5 +1,5 @@
 // Hetzner Cloud: find, create and delete our one server
-import cloudInit from "../../server/cloud-init.yaml";
+import cloudInit from "../../../server/cloud-init.yaml";
 
 async function hetzner(env, method, path, body) {
     const res = await fetch(`https://api.hetzner.cloud/v1${path}`, {
@@ -32,7 +32,7 @@ export async function createServer(env) {
         // Without an SSH key Hetzner emails a root password; root login is disabled anyway
         ssh_keys: [env.SSH_KEY_NAME],
         firewalls: [{ firewall: firewalls.firewalls[0].id }],
-        user_data: cloudInit.replace("__MC_ENV__", btoa(serverSecrets(env))),
+        user_data: cloudInit.replaceAll("__MC_ENV__", btoa(serverSecrets(env))),
     });
     return data.server;
 }

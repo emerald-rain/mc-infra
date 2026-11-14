@@ -1,4 +1,7 @@
+# Started by agent/start.sh after the world is restored; cloudflared starts earlier from cloud-init.
 services:
+
+  # Minecraft itself; the world lives in ./data/world
   mc-server:
     container_name: mc-server
     image: itzg/minecraft-server:latest
@@ -41,8 +44,8 @@ services:
 #      - ./mods:/mods:ro
     stop_grace_period: 60s
 
-  # Tunnel to the panel agent (agent.knash.party -> localhost:8080, set in the Zero Trust dashboard).
-  # Host network: the agent listens on the host's localhost. stop.sh stops only mc-server.
+  # Tunnel for the panel: agent.knash.party -> localhost:8080 (the agent), set in Zero Trust.
+  # Host network, because the agent listens on the host's localhost. stop.sh leaves it running.
   cloudflared:
     container_name: cloudflared
     image: cloudflare/cloudflared:latest

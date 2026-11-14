@@ -1,24 +1,22 @@
-# https://console.hetzner.com/projects/*/security/tokens
+# Copy to .dev.vars and fill in
+# Upload: npx wrangler@4 secret bulk .dev.vars
+
+# Panel login password (any username)
+PANEL_PASSWORD=
+
+# Hetzner · console.hetzner.com → project → Security → API tokens (Read & Write)
 HETZNER_TOKEN=
+
+# R2 backups · dash.cloudflare.com → R2 → Manage API tokens (Object Read & Write)
 R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
 
-#   https://dash.cloudflare.com/profile/api-tokens
-#   Create Token - Create Token - Edit zone DNS 
-#   Policies: Include + Specific zone + site.com
+# DNS · My Profile → API Tokens → "Edit zone DNS", zone knash.party
 CF_API_TOKEN=
-
-#   https://dash.cloudflare.com/
-#   Domains - site.com - API/Zone ID (right panel at the bottom)
+# knash.party → Overview → Zone ID (right column)
 CF_ZONE_ID=
 
-#   Networking > Tunnels: token of the tunnel with 
-#   agent.knash.party -> http://localhost:8080
+# Tunnel · Zero Trust → Networks → Tunnels → your tunnel → eyJ... token in install command
 TUNNEL_TOKEN=
-
-#   Shared secret between the Worker and the agent: 
-#   openssl rand -hex 32
+# Panel ↔ agent shared secret · openssl rand -hex 32
 AGENT_TOKEN=
-
-#   Panel login password (any username)
-PANEL_PASSWORD=
