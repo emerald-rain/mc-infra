@@ -16,7 +16,8 @@ trap 'rm -f "$ARCHIVE"' EXIT
 
 # A stopped server writes nothing, so the world on disk is consistent
 echo "Stopping Minecraft ..."
-docker stop mc-server
+docker stop mc-server > /dev/null
+echo "Container mc-server: stopped"
 
 echo "Archiving world ..."
 tar --create --zstd --file "$ARCHIVE" -C "$DATA_DIR" world
@@ -24,8 +25,9 @@ tar --create --zstd --file "$ARCHIVE" -C "$DATA_DIR" world
 echo "Checking archive integrity ..."
 zstd -tq "$ARCHIVE"
 
-echo "Uploading to $BACKUPS/$NAME ..."
+echo "Uploading $BACKUPS/$NAME ..."
 rclone copyto "$ARCHIVE" "$BACKUPS/$NAME"
+echo "Backup uploaded, $(stat -c %s "$ARCHIVE" | awk '{ printf "%.1f GB", $1 / 1e9 }')"
 
 # Runs only after a successful upload (set -e), so a good backup is never deleted for a failed one
 echo "Removing old backups, keeping the latest $KEEP ..."

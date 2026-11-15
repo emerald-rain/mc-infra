@@ -33,6 +33,12 @@ tar -I zstd -xf "$ARCHIVE" -C "$DATA_DIR"
 # Without these Minecraft silently generates a new empty world, so refuse to start
 [ -f "$WORLD_DIR/level.dat" ] || { echo "ERROR: missing $WORLD_DIR/level.dat" >&2; exit 1; }
 [ -d "$WORLD_DIR/dimensions/minecraft/overworld/region" ] || { echo "ERROR: no overworld chunks in $WORLD_DIR" >&2; exit 1; }
+echo "World files found: level.dat, overworld region"
 
 echo "World restored. Starting Minecraft ..."
-docker compose -f "$MC_DIR/docker-compose.yml" up -d
+# Quiet on success (the panel's log shows this output), the whole output on failure
+if ! OUT="$(docker compose -f "$MC_DIR/docker-compose.yml" up -d --quiet-pull mc-server 2>&1)"; then
+    echo "$OUT"
+    echo "ERROR: docker compose up failed" >&2
+    exit 1
+fi

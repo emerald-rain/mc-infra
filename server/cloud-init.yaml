@@ -70,8 +70,8 @@ runcmd:
   - [sysctl, --system]
   - [docker, run, --rm, hello-world]   # fails loudly if docker is broken
   - [su, -, malysh, -c, "git clone -q https://github.com/emerald-rain/mc-infra.git"]
-  # Agent and tunnel first, so the panel sees the server while the world is being restored
+  # Tunnel and agent; the agent runs agent/start.sh itself (restore the world, start Minecraft),
+  # so the panel's log shows every step
+  - [su, -, malysh, -c, "docker compose -f mc-infra/server/docker-compose.yml up -d cloudflared"]
   - [cp, /home/malysh/mc-infra/server/agent/mc-agent.service, /etc/systemd/system/]
   - [systemctl, enable, --now, mc-agent]
-  - [su, -, malysh, -c, "docker compose -f mc-infra/server/docker-compose.yml up -d cloudflared"]
-  - [su, -, malysh, -c, "mc-infra/server/agent/start.sh"]

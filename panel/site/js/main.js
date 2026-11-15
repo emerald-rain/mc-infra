@@ -61,7 +61,11 @@ function showError(text) {
 async function refresh() {
   try {
     server = await api("GET", "/server");
-    showError(server.state === "backup_failed" ? "Backup failed. The server is kept: open the log, then shut down to retry." : "");
+    const errors = {
+      backup_failed: "Backup failed. The server is kept: open the log, then shut down to retry.",
+      start_failed: "Start failed, see the log. Shut down deletes the server, the backups stay in R2.",
+    };
+    showError(errors[server.state] ?? "");
   } catch (err) {
     showError(`No connection to the panel: ${err.message}`);
   }

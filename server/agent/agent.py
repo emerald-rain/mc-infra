@@ -28,41 +28,58 @@ CPU_POINTS = 61  # 10 minutes of samples for the panel's CPU chart
 class Job:
     """A script that runs in the background, one copy at a time.
 
-    status: idle -> running -> done | failed. log keeps the end of the script's output.
+    status: idle -> running -> done | failed. lines: its output with UTC times, for the panel's log.
     """
 
     def __init__(self, script):
         self.script = os.path.join(HERE, script)
         self.status = "idle"
-        self.log = ""
+        self.lines = []
+        self.started = self.finished = None
+        self.reason = None
         self._lock = threading.Lock()
 
-    def start(self):
-        """Starts the script; False if it is already running."""
+    def start(self, reason=None, notes=()):
+        """Starts the script; False if it is already running.
+
+        notes: [{time, text}] the panel puts before the output, e.g. why the server stops.
+        """
         # The lock makes check-and-set atomic, so two quick requests cannot both start it
         with self._lock:
             if self.status == "running":
                 return False
-            self.status, self.log = "running", ""
+            self.status, self.reason = "running", reason
+            self.started, self.finished = utc_now(), None
+            self.lines = [{"time": str(n.get("time") or self.started), "text": str(n.get("text", ""))} for n in notes]
         threading.Thread(target=self._run, daemon=True).start()
         return True
 
     def _run(self):
         # Any exception must end in "failed", otherwise "running" sticks and blocks a retry
         try:
-            result = subprocess.run([self.script], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-            self.status = "done" if result.returncode == 0 else "failed"
-            self.log = result.stdout[-4000:]
+            proc = subprocess.Popen([self.script], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            for line in proc.stdout:
+                if line.strip():
+                    self.lines.append({"time": utc_now(), "text": line.rstrip()})
+                    del self.lines[:-300]
+            self.status = "done" if proc.wait() == 0 else "failed"
         except Exception as err:
-            self.status, self.log = "failed", f"{self.script} did not run: {err}"
+            self.lines.append({"time": utc_now(), "text": f"ERROR: {self.script} did not run: {err}"})
+            self.status = "failed"
+        self.finished = utc_now()
 
-    def to_json(self):
-        return {"status": self.status, "log": self.log}
+    def to_json(self, lines=False):
+        data = {"status": self.status, "log": "\n".join(l["text"] for l in self.lines[-40:])}
+        if lines:
+            data.update(lines=self.lines, started=self.started, finished=self.finished, reason=self.reason)
+        return data
 
 
 JOBS = {
-    "stop": Job("stop.sh"),  # stop Minecraft, back up the world to R2
+    "start": Job("start.sh"),  # restore the world from R2, start Minecraft; runs when the agent starts
+    "stop": Job("stop.sh"),    # stop Minecraft, back up the world to R2
 }
+AGENT_STARTED = None  # set in main, "Agent connected" in the panel's log
 
 
 def container_state():
@@ -111,6 +128,8 @@ class Sampler:
         self.tps = None
         self._joined = {}     # player name -> time first seen online
         self._last_cpu = None
+        self.boot_console = []  # Minecraft's last lines while it was starting
+        self.online_at = None   # when the container first became healthy
 
     def start(self):
         threading.Thread(target=self._loop, daemon=True).start()
@@ -133,9 +152,14 @@ class Sampler:
                 self.cpu.append(round(100 * (1 - d_idle / d_total), 1))
         self._last_cpu = (idle, total)
 
-        if container_state()[0] != "running":
+        container, health = container_state()
+        if container != "running":
             self.players, self.tps, self._joined = None, None, {}
             return
+        if health == "healthy":
+            self.online_at = self.online_at or utc_now()
+        elif not self.online_at:
+            self.boot_console = [line["text"] for line in console_lines()[-6:]]
         self._sample_players()
         self._sample_tps()
 
@@ -184,11 +208,12 @@ def disk():
 
 
 def read_plan():
+    """{"plan": "hour" | "empty" | None, "at": when it was set}"""
     try:
         with open(PLAN_FILE) as f:
-            return json.load(f).get("plan")
+            return json.load(f)
     except (OSError, ValueError):
-        return None
+        return {"plan": None, "at": None}
 
 
 # Commands sent from the panel, shown in the console between the server's own lines
@@ -222,10 +247,11 @@ def console_lines():
 def get_status(body):
     container, health = container_state()
     jobs = {name: job.to_json() for name, job in JOBS.items()}
+    plan = read_plan()
     metrics = {"ram": memory(), "disk": disk(), "tps": SAMPLER.tps, "cpu": list(SAMPLER.cpu)}
     return 200, {
         "container": container, "health": health, "jobs": jobs,
-        "plan": read_plan(), "players": SAMPLER.players, "metrics": metrics,
+        "plan": plan.get("plan"), "planAt": plan.get("at"), "players": SAMPLER.players, "metrics": metrics,
     }
 
 
@@ -259,8 +285,19 @@ def post_plan(body):
     return 200, {"plan": plan}
 
 
+def get_log(body):
+    """Everything the panel's log needs from this server."""
+    return 200, {
+        "agentStarted": AGENT_STARTED,
+        "jobs": {name: job.to_json(lines=True) for name, job in JOBS.items()},
+        "bootConsole": SAMPLER.boot_console,
+        "onlineAt": SAMPLER.online_at,
+    }
+
+
 def post_stop(body):
-    if not JOBS["stop"].start():
+    notes = body.get("notes") if isinstance(body.get("notes"), list) else []
+    if not JOBS["stop"].start(reason=body.get("reason"), notes=[n for n in notes if isinstance(n, dict)]):
         return 409, {"error": "stop already running"}
     # The backup takes minutes; the panel follows it via GET /status
     return 202, {"started": "stop"}
@@ -272,6 +309,7 @@ ROUTES = {
     ("GET", "/console"): get_console,
     ("POST", "/console"): post_console,
     ("POST", "/plan"): post_plan,
+    ("GET", "/log"): get_log,
 }
 
 
@@ -309,6 +347,10 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    AGENT_STARTED = utc_now()
+    # First boot: restore the world. After a reboot the container exists and is left alone.
+    if container_state()[0] == "missing":
+        JOBS["start"].start()
     SAMPLER.start()
     # Localhost only: reachable from outside just through the tunnel
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

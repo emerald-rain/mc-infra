@@ -11,10 +11,11 @@ export const STATES = {
   backing_up:    { label: "Backing up",      dot: "amber" },
   deleting:      { label: "Deleting",        dot: "amber" },
   backup_failed: { label: "Backup failed",   dot: "red" },
+  start_failed:  { label: "Start failed",    dot: "red" },
 };
 
-// States in which the server can be shut down (the agent runs the backup)
-export const STOPPABLE = ["starting", "online", "stopped", "backup_failed"];
+// States in which the server can be shut down (the agent runs the backup; a failed start is just deleted)
+export const STOPPABLE = ["starting", "online", "stopped", "backup_failed", "start_failed"];
 
 // Shutdown plans (DESIGN.md §3.6)
 export const PLANS = {

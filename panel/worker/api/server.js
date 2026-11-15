@@ -3,6 +3,7 @@ import * as hetzner from "../services/hetzner.js";
 import * as dns from "../services/dns.js";
 import * as agent from "../services/agent.js";
 import * as backups from "../services/backups.js";
+import * as log from "./log.js";
 import { HttpError } from "../http.js";
 
 export const routes = {
@@ -14,15 +15,17 @@ export const routes = {
     "POST /api/console": sendCommand,
 };
 
-const STOPPABLE = ["starting", "online", "stopped", "backup_failed"];
+const STOPPABLE = ["starting", "online", "stopped", "backup_failed", "start_failed"];
+const REASONS = { now: "shut down now", hour: "before next hour", empty: "when everyone leaves" };
 
 // One state for the site, from Hetzner and the agent:
 //   none -> creating -> booting -> restoring -> starting -> online -> backing_up -> deleting -> none
 // Off the happy path:
 //   stopped        Minecraft is not running, stop to back up and delete the server
 //   backup_failed  the server is kept, stop can be retried
+//   start_failed   the world was not restored; stop deletes the server (there is nothing to save)
 // Also returns the raw Hetzner server and agent status for the callers that need them.
-async function getState(env) {
+export async function getState(env) {
     const server = await hetzner.findServer(env);
     if (!server) return { state: "none" };
 
@@ -41,6 +44,7 @@ async function getState(env) {
     if (jobs.stop.status === "done") return { ...withAgent, state: "deleting" };
     if (jobs.stop.status === "failed") return { ...withAgent, state: "backup_failed", log: jobs.stop.log };
     // start.sh creates the container only after the world is restored
+    if (container === "missing" && jobs.start?.status === "failed") return { ...withAgent, state: "start_failed" };
     if (container === "missing") return { ...withAgent, state: "restoring" };
     if (container === "running") return { ...withAgent, state: health === "healthy" ? "online" : "starting" };
     return { ...withAgent, state: "stopped" };
@@ -82,23 +86,39 @@ async function start(request, env) {
     if (await hetzner.findServer(env)) {
         throw new HttpError(409, "server already exists");
     }
+    // The log names the save even when start.sh will pick the latest itself
+    const saveName = save ?? (await backups.list(env))[0]?.key ?? "-";
+    const at = new Date().toISOString();
     const server = await hetzner.createServer(env, { type, location, save });
-    await dns.setMinecraftIp(env, server.public_net.ipv4.ip);
+    const ip = server.public_net.ipv4.ip;
+    await dns.setMinecraftIp(env, ip);
+    await log.opened(env, {
+        kind: "start",
+        at,
+        fields: [["Host", type], ["Region", log.REGIONS[location] ?? location], ["Save", saveName]],
+        lines: log.creationLines(server, type, location, env.MC_HOSTNAME, ip),
+        serverId: server.id,
+    });
     return { state: "creating" };
 }
 
 // Only starts the backup; deleteAfterBackup() deletes the server when it is done
 async function stop(request, env) {
-    const { state } = await getState(env);
+    const { state, server } = await getState(env);
     if (!STOPPABLE.includes(state)) {
         throw new HttpError(409, `cannot stop in state ${state}`);
     }
-    await stopNow(env);
+    if (state === "start_failed") {
+        await deleteServer(env, server, state);
+        return { state: "deleting" };
+    }
+    await stopNow(env, "now", [{ text: "Shutdown requested: now" }]);
     return { state: "backing_up" };
 }
 
-async function stopNow(env) {
-    const res = await agent.stop(env);
+// plan: "now" | "hour" | "empty"; notes: lines for the log before the script's output
+async function stopNow(env, plan, notes) {
+    const res = await agent.stop(env, REASONS[plan], notes);
     if (!res) throw new HttpError(502, "agent unreachable");
     if (res.status !== 202) throw new HttpError(res.status, res.data.error);
 }
@@ -140,7 +160,7 @@ export async function tick(env) {
     // Delete the server once the agent says its world is in R2
     if (server.status === "running" && status?.jobs.stop.status === "done") {
         console.log(`Backup done, deleting server ${server.id}`);
-        await hetzner.deleteServer(env, server.id);
+        await deleteServer(env, server, state);
         return;
     }
 
@@ -151,6 +171,15 @@ export async function tick(env) {
     const online = status.players?.list.length ?? 0;
     if (plan === "hour" || online === 0) {
         console.log(`Shutdown plan "${plan}": stopping, ${online} players online`);
-        await stopNow(env);
+        await stopNow(env, plan, [
+            { time: status.planAt, text: `Shutdown scheduled: ${REASONS[plan]}` },
+            { text: `Players online: ${online}, stopping before the next billed hour` },
+        ]);
     }
+}
+
+// The log keeps this server's sessions, then it goes. A log failure must not keep a paid server.
+async function deleteServer(env, server, state) {
+    await log.close(env, server, state).catch((err) => console.log(`Log not saved: ${err.message}`));
+    await hetzner.deleteServer(env, server.id);
 }

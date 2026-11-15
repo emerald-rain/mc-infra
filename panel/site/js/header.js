@@ -2,7 +2,8 @@
 import { esc, duration, ago, elapsed, minutesToNextHour, elements } from "./format.js";
 import { STATES, STOPPABLE, minutesToPlannedStop } from "./states.js";
 
-const RING = 28.3; // circumference of the r=4.5 billing ring
+const RING = 28.3;
+const STARTING = ["creating", "booting", "restoring", "starting"]; // circumference of the r=4.5 billing ring
 
 export function header(root, { onShutdown, onStart }) {
   const el = elements(root);
@@ -39,8 +40,9 @@ export function header(root, { onShutdown, onStart }) {
     const dotClass = dot === "ring" && screen === "logs" ? "" : dot;
     let tail = "";
     if (server.state === "none") tail = server.deletedAt ? ago(server.deletedAt) : "";
-    else if (server.state === "online" && server.server) tail = duration((Date.now() - new Date(server.server.createdAt)) / 60000);
-    else if (server.server) tail = elapsed(server.server.createdAt);
+    // "+4:35" while starting, uptime after that
+    else if (STARTING.includes(server.state) && server.server) tail = elapsed(server.server.createdAt);
+    else if (server.server) tail = duration((Date.now() - new Date(server.server.createdAt)) / 60000);
     return part(`<span class="dot ${dotClass}" aria-hidden="true"></span><b>${esc(label)}</b>`) + (tail ? `<span>${tail}</span>` : "");
   }
 

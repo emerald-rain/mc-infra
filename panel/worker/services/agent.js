@@ -23,9 +23,16 @@ export async function status(env) {
     return res?.status === 200 ? res.data : null;
 }
 
-// Starts stop.sh (stop Minecraft, back up the world)
-export async function stop(env) {
-    return await call(env, "POST", "/stop");
+// Starts stop.sh (stop Minecraft, back up the world).
+// reason goes to the log; notes: [{ time, text }] lines put before the script's output
+export async function stop(env, reason, notes = []) {
+    return await call(env, "POST", "/stop", { reason, notes });
+}
+
+// { agentStarted, jobs: { start, stop } with timestamped lines, bootConsole, onlineAt }, or null
+export async function log(env) {
+    const res = await call(env, "GET", "/log");
+    return res?.status === 200 ? res.data : null;
 }
 
 // { lines: [{ time, text, command }] }, or null
