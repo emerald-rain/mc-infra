@@ -14,7 +14,11 @@ async function getOffline(request, env) {
     const [list, used, availability] = await Promise.all([
         backups.list(env),
         backups.used(env),
-        hetzner.availability(env).catch(() => null), // the screen still works without it
+        // the screen still works without it
+        hetzner.availability(env).catch((err) => {
+            console.log(`Availability not loaded: ${err.message}`);
+            return null;
+        }),
     ]);
     return {
         // The last server was deleted right after its backup

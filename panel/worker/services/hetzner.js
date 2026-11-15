@@ -44,19 +44,16 @@ export async function deleteServer(env, id) {
     await hetzner(env, "DELETE", `/servers/${id}`);
 }
 
-// Where each server type can be created now: { cpx12: ["nbg1", "hel1"], ... }
+// Where each server type can be created now and its €/hour there (gross):
+//   { cpx12: { hel1: 0.0152, nbg1: 0.0184 }, cx23: {}, ... }
 export async function availability(env) {
-    const [{ datacenters }, { server_types }] = await Promise.all([
-        hetzner(env, "GET", "/datacenters"),
-        hetzner(env, "GET", "/server_types?per_page=50"),
-    ]);
-    const names = Object.fromEntries(server_types.map((t) => [t.id, t.name]));
+    const { server_types } = await hetzner(env, "GET", "/server_types?per_page=50");
     const result = {};
-    for (const dc of datacenters) {
-        for (const id of dc.server_types.available) {
-            const list = (result[names[id]] ??= []);
-            if (!list.includes(dc.location.name)) list.push(dc.location.name);
-        }
+    for (const t of server_types) {
+        const prices = Object.fromEntries(t.prices.map((p) => [p.location, Number(p.price_hourly.gross)]));
+        result[t.name] = Object.fromEntries(
+            t.locations.filter((l) => l.available && prices[l.name] != null).map((l) => [l.name, prices[l.name]]),
+        );
     }
     return result;
 }

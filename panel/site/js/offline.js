@@ -10,7 +10,7 @@ const LOCATIONS = [
   { id: "hel1", name: "Helsinki", flag: "fi" },
 ];
 
-// €/hour in Helsinki; Germany costs €2/month more (DESIGN.md §4.3)
+// €/hour in Helsinki, used only when Hetzner did not answer; Germany costs €2/month more (DESIGN.md §4.3)
 const TYPES = [
   { id: "cx23", price: 0.009, note: "older CPU" },
   { id: "cpx12", price: 0.015, note: "" },
@@ -35,18 +35,22 @@ export function offlineScreen(root, { onPick }) {
   let downloaded = null;
   let timer;
 
-  // A type is available unless the API says otherwise (cx23 often is not)
+  // From Hetzner: { type: { location: €/hour } } with only the locations it can be created in now.
+  // Without an answer every type counts as available at the fallback price.
   const available = (typeId, loc) => {
-    const where = data?.availability?.[typeId];
-    return !where || where.includes(loc);
+    const all = data?.availability;
+    return !all || all[typeId]?.[loc] != null;
   };
+  const priceOf = (t, loc) => data?.availability?.[t.id]?.[loc] ?? t.price + (loc === "hel1" ? 0 : GERMANY_EXTRA);
 
   // Default: cx23 in Helsinki, else cx23 anywhere, else cpx12 in Helsinki (DESIGN.md §4.3)
   function choice() {
     const anyCx = LOCATIONS.map((l) => l.id).find((l) => available("cx23", l));
     const loc = location ?? (available("cx23", "hel1") ? "hel1" : anyCx ?? "hel1");
     const wanted = type ?? (available("cx23", loc) ? "cx23" : "cpx12");
-    return { location: loc, type: available(wanted, loc) ? wanted : "cpx12" };
+    // An unavailable pick falls back to cpx12, then to whatever the location still has
+    const fallback = ["cpx12", ...TYPES.map((t) => t.id)].find((id) => available(id, loc)) ?? wanted;
+    return { location: loc, type: available(wanted, loc) ? wanted : fallback };
   }
 
   function renderR2() {
@@ -89,7 +93,7 @@ export function offlineScreen(root, { onPick }) {
     el.types.innerHTML = TYPES.map((t) => {
       const off = !available(t.id, c.location);
       const on = t.id === c.type;
-      const price = t.price + (c.location === "hel1" ? 0 : GERMANY_EXTRA);
+      const price = priceOf(t, c.location);
       return (
         `<button type="button" class="type" role="radio" aria-checked="${on}" aria-disabled="${off}" data-type="${t.id}">` +
         `<span class="type-top"><span class="type-name">${t.id}</span><span class="type-note">${t.note}</span></span>` +
