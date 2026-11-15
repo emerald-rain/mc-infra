@@ -6,7 +6,7 @@ import { header, setStartLabel } from "./header.js";
 import { onlineScreen } from "./online.js";
 import { offlineScreen } from "./offline.js";
 import { logsScreen } from "./logs.js";
-import { STATES, STARTING } from "./states.js";
+import { STARTING } from "./states.js";
 
 const POLL_MS = 5000;
 const OFFLINE_POLL_MS = 60000;
@@ -93,9 +93,7 @@ async function loadOffline(force) {
 
 async function loadLog() {
   try {
-    const log = await api("GET", "/log");
-    const dot = STATES[server?.state]?.dot;
-    logs.update(log, dot === "amber");
+    logs.update(await api("GET", "/log"));
   } catch {
     // the next poll retries
   }

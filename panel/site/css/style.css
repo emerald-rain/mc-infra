@@ -345,18 +345,10 @@ a { color: inherit; }
 .spinner { animation: kl-spin .9s linear infinite; transform-origin: 50% 50%; }
 .spinner circle { stroke: var(--amber-track); }
 .spinner path { stroke: var(--amber); }
-.tail {
-  margin: 0 0 2px 74px; padding-left: 8px; border-left: 1px solid var(--rule);
-  font-size: var(--fs-10); line-height: 14px; color: var(--text-4);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.cursor { display: block; width: 7px; height: 13px; margin: 2px 0 0 74px; background: var(--text-3); animation: kl-blink 1s steps(1) infinite; }
-.logs-scroll > .cursor { margin-left: max(74px, calc((100% - 640px) / 2 + 74px)); }
 
 @keyframes kl-spin { to { transform: rotate(360deg); } }
-@keyframes kl-blink { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .spinner, .cursor { animation: none; }
+  .spinner { animation: none; }
   .chevron { transition: none; }
 }
 

@@ -62,7 +62,6 @@ function startLines(stored, server, agentLog, hostname) {
     if (start?.status !== "done") return lines;
 
     add(line(start.finished, "Container mc-server: running", agentLog.onlineAt ? "done" : "spin"));
-    add(...(agentLog.bootConsole ?? []).map((text) => ({ time: start.finished, text, console: true })));
     if (agentLog.onlineAt) add(line(agentLog.onlineAt, `Server is online, join at ${hostname}`, "ok"));
     return lines;
 }

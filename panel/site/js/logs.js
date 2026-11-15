@@ -15,7 +15,7 @@ const field = ([k, v]) =>
   `<div class="field"><span class="k">${esc(k)}</span><span class="p">${":".padEnd(8 - k.length)}</span><span class="v">${esc(v)}</span></div>`;
 
 function line(l) {
-  if (l.console) return `<div class="tail">${esc(l.text)}</div>`;
+  if (l.console) return ""; // Minecraft's boot output, kept in older logs, is not shown
   const kind = ICONS[l.kind] ? l.kind : "done";
   const hint = l.hint ? `<span class="ev-hint">${esc(l.hint)}</span>` : "";
   return (
@@ -56,9 +56,8 @@ export function logsScreen(root) {
       stick = true;
       scrollDown();
     },
-    // log: GET /api/log; running: a start or stop is in progress (blinking cursor)
-    update(log, running) {
-      el.cursor.hidden = !running;
+    // log: GET /api/log
+    update(log) {
       const next = JSON.stringify(log.sessions);
       if (next !== key) {
         key = next;
