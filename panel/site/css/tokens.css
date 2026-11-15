@@ -1,0 +1,102 @@
+/* Kladnash dashboard: design tokens (every value is taken from the design files) */
+
+:root {
+  /* type */
+  --font-ui: Geist, system-ui, sans-serif;            /* labels, buttons, headings, descriptions */
+  --font-mono: 'Geist Mono', monospace;              /* every number, name, file, time, log line */
+  --fs-10: 10px;   /* metric labels (RAM/TPS/DISK), units, console tail lines in the log, cx23 note */
+  --fs-11: 11px;   /* pills, meta, player names, list rows, log lines, location buttons */
+  --fs-12: 12px;   /* buttons, card titles, inputs, save names, domain/IP */
+  --fs-13: 13px;   /* base size, metric values, sheet option titles, sheet buttons */
+  --fs-15: 15px;   /* bottom sheet title */
+  --fs-20: 20px;   /* CPU now value on the chart */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --lh-log: 15px;  /* log lines (11px mono) */
+
+  /* surfaces */
+  --bg: #000;                 /* page */
+  --surface: #0a0a0a;         /* cards, pills */
+  --surface-sunken: #050505;  /* console output area */
+  --surface-selected: #141414;/* selected radio rows / cards */
+  --surface-button: #111;     /* secondary button in the sheet */
+  --scrim: rgba(0, 0, 0, 0.6);/* behind the bottom sheet */
+
+  /* lines */
+  --border: #1f1f1f;          /* cards, pills, inputs */
+  --divider: #1a1a1a;         /* card header divider, list row separators */
+  --border-muted: #161616;    /* "Past servers" card (secondary) */
+  --divider-muted: #141414;   /* rows inside "Past servers" */
+  --border-selected: #5a5a5a; /* selected option outline */
+  --border-dashed: #2e2e2e;   /* "No server" status pill (dashed) */
+  --rule: #262626;            /* vertical separators between metrics, console tail rule in log */
+  --grabber: #2a2a2a;         /* sheet handle */
+
+  /* text */
+  --text: #ededed;            /* primary values */
+  --text-2: #bdbdbd;          /* secondary (player list, IP, unselected names) */
+  --text-pill: #a3a3a3;       /* pill body text, past-server names */
+  --text-3: #8a8a8a;          /* labels, units, meta, timestamps in console */
+  --text-4: #6e6e6e;          /* log timestamps, log captions, console tail lines */
+  --text-5: #5a5a5a;          /* log dashed rule, idle dot ring */
+  --on-accent: #000;
+
+  /* accent & status */
+  --accent: #e5e5e5;          /* CPU line + dot, Send button, R2 usage bar */
+  --green: #22c55e;           /* "online" dot */
+  --green-text: #4ade80;      /* TPS 20.0, Copied, Start text, final "ok" log line */
+  --green-bg: #0f2a17;        /* Start button */
+  --green-done: #3f8f5c;      /* completed step checkmarks in the log */
+  --amber: #f0bf55;           /* scheduled shutdown, in-progress spinner, "starting" dot */
+  --amber-bg: #2a1f08;        /* scheduled shutdown pill */
+  --amber-track: #3a2c10;     /* spinner track */
+  --amber-note: #d9a441;      /* "older CPU" note on cx23 */
+  --red-text: #ff8a80;        /* Shut down */
+  --red-bg: #3a1214;          /* Shut down */
+  --red-err: #ff6b6b;         /* error lines in the log */
+  --ring-track: #2e2e2e;      /* billing ring track */
+  --ring-fill: #d4d4d4;       /* billing ring progress */
+
+  /* pixel art (chick logo + pixel lettering) */
+  --px-yellow: #f8c442;
+  --px-orange: #f17226;
+  --px-outline: #893f34;      /* outline + lettering shadow */
+  --px-white: #eceee9;
+  --px-pink: #eb6582;
+
+  /* shape */
+  --r-pill: 999px;
+  --r-card: 16px;
+  --r-option: 12px;           /* radio cards in the sheet, server type cards */
+  --r-avatar: 3px;            /* player heads */
+
+  /* sizes */
+  --h-control: 28px;          /* THE row height: header items, pills, buttons, inputs, card headers, player rows */
+  --h-sheet-button: 36px;
+  --h-save-row: 44px;
+  --h-past-row: 36px;
+  --icon-button: 32px;        /* download button in the saves list */
+  --icon-button-sm: 28px;     /* Drive link in past servers */
+  --logo-w: 24.5px;           /* chick: 14x16 pixel grid shown at 28px tall */
+  --logo-h: 28px;
+
+  /* spacing */
+  --page-x: 16px;             /* page side padding (log uses 28px) */
+  --stack: 12px;              /* vertical gap between blocks */
+  --card-x: 12px;             /* inner horizontal padding of cards and pills */
+  --gap-pill: 10px;
+  --gap-tight: 6px;
+
+  /* glass header */
+  --header-pad-y: 6px;        /* header = 6 + 28 + 6 + 1px bottom border = 41px */
+  --header-border: rgba(255, 255, 255, 0.06);
+  --header-bg: rgba(0, 0, 0, 0.55);
+  --header-filter: blur(20px) saturate(180%);
+  --header-bg-logs: rgba(0, 0, 0, 0.2);     /* the log scrolls under it, so it is more transparent */
+  --header-filter-logs: blur(16px) saturate(80%);
+
+  /* motion */
+  --t-chevron: transform 0.2s ease;
+  --copied-ms: 1600;          /* how long "Copied" / download check stays */
+}

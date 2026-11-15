@@ -1,2 +1,4 @@
 .dev.vars
 .wrangler
+# Design handoff, kept locally
+site/kladnash-design/

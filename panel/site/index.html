@@ -2,151 +2,143 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MC Panel</title>
+<!-- maximum-scale=1: the 12px console input would otherwise zoom the page on iOS -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Kladnash</title>
+<link rel="icon" href="/img/chick.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/tokens.css">
 <link rel="stylesheet" href="/css/style.css">
 <script type="module" src="/js/main.js"></script>
 </head>
 <body>
 
-<!-- Server: state, address, start/stop. Logic: js/server-card.js -->
-<div id="server">
-
-  <header class="top-bar">
-    <svg class="logo" width="24.5" height="28" viewBox="0 0 14 16" shape-rendering="crispEdges" role="img" aria-label="Kladnash">
-      <rect x="4" y="0" width="2" height="1" fill="#893f34"/>
-      <rect x="3" y="1" width="1" height="1" fill="#893f34"/>
-      <rect x="4" y="1" width="1" height="1" fill="#f8c442"/>
-      <rect x="5" y="1" width="1" height="1" fill="#893f34"/>
-      <rect x="3" y="2" width="1" height="1" fill="#893f34"/>
-      <rect x="4" y="2" width="1" height="1" fill="#f17226"/>
-      <rect x="5" y="2" width="1" height="1" fill="#f8c442"/>
-      <rect x="6" y="2" width="1" height="1" fill="#893f34"/>
-      <rect x="2" y="3" width="3" height="1" fill="#893f34"/>
-      <rect x="5" y="3" width="1" height="1" fill="#f17226"/>
-      <rect x="6" y="3" width="1" height="1" fill="#f8c442"/>
-      <rect x="7" y="3" width="1" height="1" fill="#893f34"/>
-      <rect x="1" y="4" width="1" height="1" fill="#893f34"/>
-      <rect x="2" y="4" width="6" height="1" fill="#f8c442"/>
-      <rect x="8" y="4" width="1" height="1" fill="#893f34"/>
-      <rect x="0" y="5" width="1" height="1" fill="#893f34"/>
-      <rect x="1" y="5" width="8" height="1" fill="#f8c442"/>
-      <rect x="9" y="5" width="1" height="1" fill="#893f34"/>
-      <rect x="0" y="6" width="1" height="1" fill="#893f34"/>
-      <rect x="1" y="6" width="8" height="1" fill="#f8c442"/>
-      <rect x="9" y="6" width="1" height="1" fill="#893f34"/>
-      <rect x="0" y="7" width="1" height="1" fill="#893f34"/>
-      <rect x="1" y="7" width="1" height="1" fill="#f8c442"/>
-      <rect x="2" y="7" width="1" height="1" fill="#893f34"/>
-      <rect x="3" y="7" width="1" height="1" fill="#eceee9"/>
-      <rect x="4" y="7" width="2" height="1" fill="#f8c442"/>
-      <rect x="6" y="7" width="1" height="1" fill="#893f34"/>
-      <rect x="7" y="7" width="1" height="1" fill="#eceee9"/>
-      <rect x="8" y="7" width="2" height="1" fill="#f8c442"/>
-      <rect x="10" y="7" width="1" height="1" fill="#893f34"/>
-      <rect x="12" y="7" width="2" height="1" fill="#893f34"/>
-      <rect x="0" y="8" width="1" height="1" fill="#893f34"/>
-      <rect x="1" y="8" width="1" height="1" fill="#f8c442"/>
-      <rect x="2" y="8" width="1" height="1" fill="#893f34"/>
-      <rect x="3" y="8" width="1" height="1" fill="#eceee9"/>
-      <rect x="4" y="8" width="2" height="1" fill="#f8c442"/>
-      <rect x="6" y="8" width="1" height="1" fill="#893f34"/>
-      <rect x="7" y="8" width="1" height="1" fill="#eceee9"/>
-      <rect x="8" y="8" width="1" height="1" fill="#f8c442"/>
-      <rect x="9" y="8" width="1" height="1" fill="#f17226"/>
-      <rect x="10" y="8" width="1" height="1" fill="#f8c442"/>
-      <rect x="11" y="8" width="1" height="1" fill="#893f34"/>
-      <rect x="12" y="8" width="1" height="1" fill="#f17226"/>
-      <rect x="13" y="8" width="1" height="1" fill="#893f34"/>
-      <rect x="0" y="9" width="1" height="1" fill="#893f34"/>
-      <rect x="1" y="9" width="2" height="1" fill="#f8c442"/>
-      <rect x="3" y="9" width="2" height="1" fill="#f17226"/>
-      <rect x="5" y="9" width="5" height="1" fill="#f8c442"/>
-      <rect x="10" y="9" width="3" height="1" fill="#f17226"/>
-      <rect x="13" y="9" width="1" height="1" fill="#893f34"/>
-      <rect x="0" y="10" width="1" height="1" fill="#893f34"/>
-      <rect x="1" y="10" width="1" height="1" fill="#f17226"/>
-      <rect x="2" y="10" width="5" height="1" fill="#f8c442"/>
-      <rect x="7" y="10" width="1" height="1" fill="#f17226"/>
-      <rect x="8" y="10" width="4" height="1" fill="#f8c442"/>
-      <rect x="12" y="10" width="1" height="1" fill="#893f34"/>
-      <rect x="0" y="11" width="1" height="1" fill="#893f34"/>
-      <rect x="1" y="11" width="1" height="1" fill="#f8c442"/>
-      <rect x="2" y="11" width="1" height="1" fill="#f17226"/>
-      <rect x="3" y="11" width="3" height="1" fill="#f8c442"/>
-      <rect x="6" y="11" width="3" height="1" fill="#f17226"/>
-      <rect x="9" y="11" width="2" height="1" fill="#f8c442"/>
-      <rect x="11" y="11" width="1" height="1" fill="#f17226"/>
-      <rect x="12" y="11" width="1" height="1" fill="#f8c442"/>
-      <rect x="13" y="11" width="1" height="1" fill="#893f34"/>
-      <rect x="1" y="12" width="1" height="1" fill="#893f34"/>
-      <rect x="2" y="12" width="1" height="1" fill="#f8c442"/>
-      <rect x="3" y="12" width="8" height="1" fill="#f17226"/>
-      <rect x="11" y="12" width="3" height="1" fill="#893f34"/>
-      <rect x="2" y="13" width="1" height="1" fill="#893f34"/>
-      <rect x="3" y="13" width="7" height="1" fill="#f17226"/>
-      <rect x="10" y="13" width="1" height="1" fill="#893f34"/>
-      <rect x="3" y="14" width="1" height="1" fill="#893f34"/>
-      <rect x="4" y="14" width="1" height="1" fill="#eb6582"/>
-      <rect x="5" y="14" width="3" height="1" fill="#893f34"/>
-      <rect x="8" y="14" width="1" height="1" fill="#eb6582"/>
-      <rect x="9" y="14" width="1" height="1" fill="#893f34"/>
-      <rect x="2" y="15" width="3" height="1" fill="#893f34"/>
-      <rect x="8" y="15" width="2" height="1" fill="#893f34"/>
-    </svg>
-    <div class="top-actions">
-      <div class="pill" data-el="pill" role="status"><span class="dot" data-el="dot"></span><strong data-el="label">Loading…</strong></div>
-      <button type="button" class="btn" data-el="action" hidden></button>
+<!-- Shared glass header. Logic: js/header.js -->
+<header class="top" id="top">
+  <div class="top-in">
+    <a class="logo" data-el="logo" href="#logs" aria-label="Kladnash: open server logs">
+      <svg width="24.5" height="28" viewBox="0 0 14 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="4" y="0" width="2" height="1" fill="#893f34"/><rect x="3" y="1" width="1" height="1" fill="#893f34"/><rect x="4" y="1" width="1" height="1" fill="#f8c442"/><rect x="5" y="1" width="1" height="1" fill="#893f34"/><rect x="3" y="2" width="1" height="1" fill="#893f34"/><rect x="4" y="2" width="1" height="1" fill="#f17226"/><rect x="5" y="2" width="1" height="1" fill="#f8c442"/><rect x="6" y="2" width="1" height="1" fill="#893f34"/><rect x="2" y="3" width="3" height="1" fill="#893f34"/><rect x="5" y="3" width="1" height="1" fill="#f17226"/><rect x="6" y="3" width="1" height="1" fill="#f8c442"/><rect x="7" y="3" width="1" height="1" fill="#893f34"/><rect x="1" y="4" width="1" height="1" fill="#893f34"/><rect x="2" y="4" width="6" height="1" fill="#f8c442"/><rect x="8" y="4" width="1" height="1" fill="#893f34"/><rect x="0" y="5" width="1" height="1" fill="#893f34"/><rect x="1" y="5" width="8" height="1" fill="#f8c442"/><rect x="9" y="5" width="1" height="1" fill="#893f34"/><rect x="0" y="6" width="1" height="1" fill="#893f34"/><rect x="1" y="6" width="8" height="1" fill="#f8c442"/><rect x="9" y="6" width="1" height="1" fill="#893f34"/><rect x="0" y="7" width="1" height="1" fill="#893f34"/><rect x="1" y="7" width="1" height="1" fill="#f8c442"/><rect x="2" y="7" width="1" height="1" fill="#893f34"/><rect x="3" y="7" width="1" height="1" fill="#eceee9"/><rect x="4" y="7" width="2" height="1" fill="#f8c442"/><rect x="6" y="7" width="1" height="1" fill="#893f34"/><rect x="7" y="7" width="1" height="1" fill="#eceee9"/><rect x="8" y="7" width="2" height="1" fill="#f8c442"/><rect x="10" y="7" width="1" height="1" fill="#893f34"/><rect x="12" y="7" width="2" height="1" fill="#893f34"/><rect x="0" y="8" width="1" height="1" fill="#893f34"/><rect x="1" y="8" width="1" height="1" fill="#f8c442"/><rect x="2" y="8" width="1" height="1" fill="#893f34"/><rect x="3" y="8" width="1" height="1" fill="#eceee9"/><rect x="4" y="8" width="2" height="1" fill="#f8c442"/><rect x="6" y="8" width="1" height="1" fill="#893f34"/><rect x="7" y="8" width="1" height="1" fill="#eceee9"/><rect x="8" y="8" width="1" height="1" fill="#f8c442"/><rect x="9" y="8" width="1" height="1" fill="#f17226"/><rect x="10" y="8" width="1" height="1" fill="#f8c442"/><rect x="11" y="8" width="1" height="1" fill="#893f34"/><rect x="12" y="8" width="1" height="1" fill="#f17226"/><rect x="13" y="8" width="1" height="1" fill="#893f34"/><rect x="0" y="9" width="1" height="1" fill="#893f34"/><rect x="1" y="9" width="2" height="1" fill="#f8c442"/><rect x="3" y="9" width="2" height="1" fill="#f17226"/><rect x="5" y="9" width="5" height="1" fill="#f8c442"/><rect x="10" y="9" width="3" height="1" fill="#f17226"/><rect x="13" y="9" width="1" height="1" fill="#893f34"/><rect x="0" y="10" width="1" height="1" fill="#893f34"/><rect x="1" y="10" width="1" height="1" fill="#f17226"/><rect x="2" y="10" width="5" height="1" fill="#f8c442"/><rect x="7" y="10" width="1" height="1" fill="#f17226"/><rect x="8" y="10" width="4" height="1" fill="#f8c442"/><rect x="12" y="10" width="1" height="1" fill="#893f34"/><rect x="0" y="11" width="1" height="1" fill="#893f34"/><rect x="1" y="11" width="1" height="1" fill="#f8c442"/><rect x="2" y="11" width="1" height="1" fill="#f17226"/><rect x="3" y="11" width="3" height="1" fill="#f8c442"/><rect x="6" y="11" width="3" height="1" fill="#f17226"/><rect x="9" y="11" width="2" height="1" fill="#f8c442"/><rect x="11" y="11" width="1" height="1" fill="#f17226"/><rect x="12" y="11" width="1" height="1" fill="#f8c442"/><rect x="13" y="11" width="1" height="1" fill="#893f34"/><rect x="1" y="12" width="1" height="1" fill="#893f34"/><rect x="2" y="12" width="1" height="1" fill="#f8c442"/><rect x="3" y="12" width="8" height="1" fill="#f17226"/><rect x="11" y="12" width="3" height="1" fill="#893f34"/><rect x="2" y="13" width="1" height="1" fill="#893f34"/><rect x="3" y="13" width="7" height="1" fill="#f17226"/><rect x="10" y="13" width="1" height="1" fill="#893f34"/><rect x="3" y="14" width="1" height="1" fill="#893f34"/><rect x="4" y="14" width="1" height="1" fill="#eb6582"/><rect x="5" y="14" width="3" height="1" fill="#893f34"/><rect x="8" y="14" width="1" height="1" fill="#eb6582"/><rect x="9" y="14" width="1" height="1" fill="#893f34"/><rect x="2" y="15" width="3" height="1" fill="#893f34"/><rect x="8" y="15" width="2" height="1" fill="#893f34"/></svg>
+    </a>
+    <div class="top-right">
+      <div class="pill status" data-el="status" role="status"></div>
+      <button type="button" class="btn btn-stop" data-el="shutdown" aria-haspopup="dialog" hidden>Shut down</button>
+      <button type="button" class="btn btn-planned" data-el="planned" aria-haspopup="dialog" hidden><span class="dot" aria-hidden="true"></span><span data-el="plannedText"></span></button>
+      <button type="button" class="btn btn-start" data-el="start" hidden>Start</button>
     </div>
-  </header>
+  </div>
+</header>
 
-  <main class="cards">
+<!-- Online: the server exists. Logic: js/online.js -->
+<main class="page" id="online" hidden>
 
-    <section class="card" aria-label="Server">
-      <div class="card-head"><h2>Server</h2></div>
-      <div class="card-body">
-        <p class="hint" data-el="hint"></p>
-        <p class="error" data-el="error" hidden></p>
-        <pre class="log" data-el="log" hidden></pre>
+  <section class="players" data-el="players" hidden>
+    <button type="button" class="players-row" data-el="playersToggle" aria-expanded="false">
+      <span class="heads" data-el="heads"></span>
+      <span class="players-names" data-el="names"></span>
+      <span class="players-count" data-el="count"></span>
+      <svg class="chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg>
+    </button>
+    <ul class="players-list" data-el="playersList" hidden></ul>
+  </section>
+
+  <section class="card metrics" aria-label="Server" data-el="metrics" hidden>
+    <div class="metric-row" data-el="metricRow"></div>
+    <div class="cpu" data-el="cpu">
+      <svg data-el="cpuSvg" role="img" height="88"></svg>
+      <span class="cpu-now" data-el="cpuNow"><span class="cpu-label">CPU&nbsp;</span><span class="cpu-value" data-el="cpuValue"></span></span>
+      <span class="cpu-avg" data-el="cpuAvg"></span>
+    </div>
+  </section>
+
+  <div class="address" data-el="address" hidden>
+    <button type="button" class="pill copy copy-domain" data-el="copyDomain">
+      <span class="copy-text" data-el="domainText"></span>
+      <svg class="icon-copy" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg>
+      <svg class="icon-check" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>
+      <span class="sr" role="status"></span>
+    </button>
+    <span class="or">or</span>
+    <button type="button" class="pill copy copy-ip" data-el="copyIp">
+      <span class="copy-text" data-el="ipText"></span>
+      <svg class="icon-copy" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg>
+      <svg class="icon-check" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>
+      <span class="sr" role="status"></span>
+    </button>
+  </div>
+
+  <section class="card console" aria-label="Console" data-el="console" hidden>
+    <div class="card-head"><h2>Console</h2><span class="meta">rcon</span></div>
+    <div class="console-out" data-el="consoleOut"></div>
+    <form class="console-form" data-el="consoleForm">
+      <label for="rcon" class="sr">Server command</label>
+      <div class="pill console-input">
+        <span aria-hidden="true">&gt;</span>
+        <input id="rcon" data-el="consoleInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="say Restarting in 5 min">
       </div>
-    </section>
+      <button type="submit" class="btn btn-send">Send</button>
+    </form>
+  </section>
 
-    <div class="address" data-el="address" hidden>
-      <button type="button" class="copy" data-el="copyHostname" aria-label="Copy server domain">
-        <span class="copy-text strong" data-el="hostname"></span>
-        <svg class="icon-copy" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg>
-        <svg class="icon-done" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>
-      </button>
-      <span class="or">or</span>
-      <button type="button" class="copy" data-el="copyIp" aria-label="Copy server IP">
-        <span class="copy-text" data-el="ip"></span>
-        <svg class="icon-copy" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg>
-        <svg class="icon-done" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>
-      </button>
-    </div>
+  <p class="error" data-el="error" hidden></p>
 
-  </main>
-
-  <!-- Confirm sheet for stopping the server -->
+  <!-- Bottom sheet: shut down now or later -->
   <div class="sheet" data-el="sheet" hidden>
-    <button type="button" class="sheet-backdrop" data-el="close" aria-label="Close"></button>
+    <button type="button" class="sheet-scrim" data-el="sheetClose" aria-label="Close"></button>
     <section class="sheet-panel" role="dialog" aria-label="Shut down server">
-      <span class="sheet-handle" aria-hidden="true"></span>
-      <div class="sheet-text">
+      <span class="sheet-grab" aria-hidden="true"></span>
+      <div class="sheet-title">
         <h2>Shut down server</h2>
-        <p class="hint">Stops right away and disconnects everyone online. The world is backed up to R2, then the server is deleted.</p>
+        <span class="meta" data-el="sheetMeta"></span>
       </div>
+      <div class="options" role="radiogroup" aria-label="When to shut down" data-el="sheetOptions"></div>
       <div class="sheet-buttons">
-        <button type="button" class="btn secondary" data-el="cancel">Cancel</button>
-        <button type="button" class="btn stop" data-el="confirm">Shut down now</button>
+        <button type="button" class="btn btn-secondary" data-el="sheetSecondary"></button>
+        <button type="button" class="btn btn-confirm" data-el="sheetConfirm"></button>
       </div>
     </section>
   </div>
+</main>
 
-</div>
+<!-- No server: start from a backup. Logic: js/offline.js -->
+<main class="page" id="offline" hidden>
+
+  <div class="pill r2" role="img" data-el="r2" hidden>
+    <span>R2</span>
+    <span class="bar"><span data-el="r2Fill"></span></span>
+    <span data-el="r2Text"></span>
+  </div>
+
+  <section class="card" aria-label="Saves" data-el="saves" hidden>
+    <div class="card-head"><h2>Start from</h2><span class="meta" data-el="savesCount"></span></div>
+    <div class="saves-list" role="radiogroup" aria-label="Save to start from" data-el="savesList"></div>
+  </section>
+
+  <section class="card" aria-label="Server" data-el="config" hidden>
+    <div class="card-head"><h2>Server</h2></div>
+    <div class="types" role="radiogroup" aria-label="Server type" data-el="types"></div>
+    <div class="locations" role="radiogroup" aria-label="Location" data-el="locations"></div>
+  </section>
+
+  <section class="card past" aria-label="Past servers" data-el="past" hidden>
+    <div class="card-head"><h2>Past servers</h2><span class="meta" data-el="pastCount"></span></div>
+    <ul class="past-list" data-el="pastList"></ul>
+  </section>
+
+  <p class="error" data-el="error" hidden></p>
+</main>
+
+<!-- Logs: every start and stop. Logic: js/logs.js -->
+<section class="logs" id="logs" aria-label="Server log" hidden>
+  <div class="logs-scroll" data-el="scroll" role="log" aria-live="polite" aria-label="Server log, all times UTC">
+    <div class="logs-mark" data-el="wordmark"></div>
+    <div class="logs-caption">last 500 lines · all times UTC</div>
+    <div data-el="sessions"></div>
+    <span class="cursor" data-el="cursor" aria-hidden="true" hidden></span>
+  </div>
+</section>
 
 </body>
 </html>
