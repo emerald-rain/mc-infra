@@ -83,24 +83,24 @@
   </section>
 
   <p class="error" data-el="error" hidden></p>
-
-  <!-- Bottom sheet: shut down now or later -->
-  <div class="sheet" data-el="sheet" hidden>
-    <button type="button" class="sheet-scrim" data-el="sheetClose" aria-label="Close"></button>
-    <section class="sheet-panel" role="dialog" aria-label="Shut down server">
-      <span class="sheet-grab" aria-hidden="true"></span>
-      <div class="sheet-title">
-        <h2>Shut down server</h2>
-        <span class="meta" data-el="sheetMeta"></span>
-      </div>
-      <div class="options" role="radiogroup" aria-label="When to shut down" data-el="sheetOptions"></div>
-      <div class="sheet-buttons">
-        <button type="button" class="btn btn-secondary" data-el="sheetSecondary"></button>
-        <button type="button" class="btn btn-confirm" data-el="sheetConfirm"></button>
-      </div>
-    </section>
-  </div>
 </main>
+
+<!-- Shutdown sheet, opened from the header on the Online and No server screens -->
+<div class="sheet" id="sheet" hidden>
+  <button type="button" class="sheet-scrim" data-el="sheetClose" aria-label="Close"></button>
+  <section class="sheet-panel" role="dialog" aria-label="Shut down server">
+    <span class="sheet-grab" aria-hidden="true"></span>
+    <div class="sheet-title">
+      <h2>Shut down server</h2>
+      <span class="meta" data-el="sheetMeta"></span>
+    </div>
+    <div class="options" role="radiogroup" aria-label="When to shut down" data-el="sheetOptions"></div>
+    <div class="sheet-buttons">
+      <button type="button" class="btn btn-secondary" data-el="sheetSecondary"></button>
+      <button type="button" class="btn btn-confirm" data-el="sheetConfirm"></button>
+    </div>
+  </section>
+</div>
 
 <!-- No server: start from a backup. Logic: js/offline.js -->
 <main class="page" id="offline" hidden>

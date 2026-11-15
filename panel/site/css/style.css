@@ -279,6 +279,9 @@ a { color: inherit; }
 .type[aria-checked="true"] { border-color: var(--border-selected); background: var(--surface-selected); }
 .type[aria-checked="true"] .type-name { color: var(--text); }
 .type[aria-disabled="true"] { border-style: dashed; opacity: .6; cursor: default; }
+/* A start in progress: the picked save, type and location stay, the rest fades */
+.locked .save-pick, .locked .type, .locked .location { cursor: default; }
+.locked .save:not(.on), .locked .type[aria-checked="false"], .locked .location[aria-checked="false"] { opacity: .45; }
 
 .locations { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap-tight); padding: 0 8px 8px; }
 .location {

@@ -17,6 +17,12 @@ export const STATES = {
 // States in which the server can be shut down (the agent runs the backup; a failed start is just deleted)
 export const STOPPABLE = ["starting", "online", "stopped", "backup_failed", "start_failed"];
 
+// A start in progress: the No server screen stays up (locked) until the server is online
+export const STARTING = ["creating", "booting", "restoring", "starting"];
+
+// A stop in progress: the Online screen stays up until the server is gone
+export const STOPPING = ["backing_up", "deleting"];
+
 // Shutdown plans (DESIGN.md §3.6)
 export const PLANS = {
   now:   { title: "Now", desc: "Stops right away. Everyone online is disconnected." },

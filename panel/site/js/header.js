@@ -1,9 +1,8 @@
 // Shared header: chick link, status pill and the action button (DESIGN.md §2)
 import { esc, duration, ago, elapsed, minutesToNextHour, elements } from "./format.js";
-import { STATES, STOPPABLE, minutesToPlannedStop } from "./states.js";
+import { STATES, STOPPABLE, STARTING, minutesToPlannedStop } from "./states.js";
 
-const RING = 28.3;
-const STARTING = ["creating", "booting", "restoring", "starting"]; // circumference of the r=4.5 billing ring
+const RING = 28.3; // circumference of the r=4.5 billing ring
 
 export function header(root, { onShutdown, onStart }) {
   const el = elements(root);
@@ -61,7 +60,7 @@ export function header(root, { onShutdown, onStart }) {
     if (screen === "online" && server.state === "online" && server.server) el.status.innerHTML = onlinePill(server);
     else el.status.innerHTML = stagePill(server, screen);
 
-    if (screen === "online" && STOPPABLE.includes(server.state)) {
+    if (screen !== "logs" && STOPPABLE.includes(server.state)) {
       const plan = server.plan;
       if (plan && server.server) {
         const text = plan === "hour" ? `Stops in ${minutesToPlannedStop(minutesToNextHour(server.server.createdAt))}m` : "Stops if empty";
@@ -72,7 +71,7 @@ export function header(root, { onShutdown, onStart }) {
         el.shutdown.hidden = false;
       }
     }
-    if (screen === "offline") el.start.hidden = false;
+    if (screen === "offline" && idle) el.start.hidden = false;
   };
 }
 

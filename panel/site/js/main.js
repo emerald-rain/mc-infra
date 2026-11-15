@@ -1,12 +1,12 @@
 // Entry point: picks the screen, polls the API and hands the data to the screens.
 //   #logs        Logs (the chick in the header)
-//   otherwise    Online when a server exists, No server when it does not
+//   otherwise    No server until a started server is online, Online from then until it is deleted
 import { api } from "./api.js";
 import { header, setStartLabel } from "./header.js";
 import { onlineScreen } from "./online.js";
 import { offlineScreen } from "./offline.js";
 import { logsScreen } from "./logs.js";
-import { STATES } from "./states.js";
+import { STATES, STARTING } from "./states.js";
 
 const POLL_MS = 5000;
 const OFFLINE_POLL_MS = 60000;
@@ -27,7 +27,7 @@ const renderHeader = header(document.getElementById("top"), {
   onShutdown: () => online.openSheet(),
   onStart: start,
 });
-const online = onlineScreen(roots.online, { refresh });
+const online = onlineScreen(roots.online, { sheet: document.getElementById("sheet"), refresh, report: showError });
 const offlineView = offlineScreen(roots.offline, {
   onPick: (when) => setStartLabel(document.getElementById("top"), when, starting),
 });
@@ -35,7 +35,9 @@ const logs = logsScreen(roots.logs);
 
 function currentScreen() {
   if (location.hash === "#logs") return "logs";
-  return server?.state === "none" ? "offline" : "online";
+  // A start keeps the No server screen up until the server is online
+  if (server?.state === "none" || STARTING.includes(server?.state)) return "offline";
+  return "online";
 }
 
 function render() {
@@ -71,6 +73,7 @@ async function refresh() {
   }
   render();
   if (!server) return;
+  offlineView.lock(server.state !== "none");
   if (server.state === "none") loadOffline(false);
   else online.update(server);
   if (screen === "logs") loadLog();

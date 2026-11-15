@@ -1,7 +1,7 @@
 // Online screen (DESIGN.md §3): players, metrics, address, RCON console, shutdown sheet
 import { api } from "./api.js";
 import { esc, gb, gbTotal, hms, minutesToNextHour, elements } from "./format.js";
-import { PLANS, STOPPABLE, minutesToPlannedStop } from "./states.js";
+import { PLANS, STOPPABLE, STOPPING, minutesToPlannedStop } from "./states.js";
 
 const COPIED_MS = 1600;
 
@@ -9,8 +9,10 @@ const COPIED_MS = 1600;
 const headUrl = (name) => `https://mc-heads.net/avatar/${encodeURIComponent(name)}/8`;
 const head = (name) => `<img class="head" src="${headUrl(name)}" width="16" height="16" alt="" loading="lazy">`;
 
-export function onlineScreen(root, { refresh }) {
-  const el = elements(root);
+// sheet: the shutdown sheet, outside root so it opens on the No server screen too.
+// report: shows an error on whichever screen is up.
+export function onlineScreen(root, { sheet, refresh, report }) {
+  const el = { ...elements(root), ...elements(sheet), sheet };
   let server = null;
   let playersOpen = false;
   let sheetChoice = "empty";
@@ -165,7 +167,7 @@ export function onlineScreen(root, { refresh }) {
   }
 
   async function loadConsole() {
-    if (server?.state !== "online") return;
+    if (server?.state !== "online" && !STOPPING.includes(server?.state)) return;
     try {
       renderConsole((await api("GET", "/console")).lines);
     } catch {
@@ -244,10 +246,10 @@ export function onlineScreen(root, { refresh }) {
     renderSheet();
     try {
       await api(method, path, body);
-      showError("");
+      report("");
       closeSheet();
     } catch (err) {
-      showError(err.message);
+      report(err.message);
     }
     busy = false;
     renderSheet();
@@ -276,14 +278,23 @@ export function onlineScreen(root, { refresh }) {
     showError,
     update(data) {
       const first = server?.state !== "online" && data.state === "online";
+      // While it stops, the screen keeps the last players and metrics until the server is gone
+      const stopping = STOPPING.includes(data.state);
       server = data;
       const online = data.state === "online";
-      renderPlayers(online ? data.players : null);
-      renderMetrics(online ? data.metrics : null);
+      if (online || !stopping) {
+        renderPlayers(online ? data.players : null);
+        renderMetrics(online ? data.metrics : null);
+      } else if (data.metrics) {
+        renderMetrics(data.metrics); // the agent keeps measuring during the backup
+      }
       el.address.hidden = !data.ip;
       setDomain(data.hostname);
       if (data.ip) setIp(data.ip);
-      el.console.hidden = !online;
+      // The console stays readable while stopping; only an online server takes commands
+      el.console.hidden = !online && !(stopping && consoleKey);
+      el.consoleInput.disabled = !online;
+      el.console.querySelector('button[type="submit"]').disabled = !online;
       if (!online) root.classList.remove("typing");
       if (!el.sheet.hidden) {
         if (STOPPABLE.includes(data.state)) renderSheet();

@@ -115,10 +115,13 @@ export function offlineScreen(root, { onPick }) {
     ).join("");
   }
 
+  let locked = false; // a server is being started: the choices stay on screen, frozen
+
   root.addEventListener("click", (e) => {
     const t = e.target.closest("[data-save],[data-download],[data-type],[data-location]");
     if (!t) return;
     const d = t.dataset;
+    if (locked && !d.download) return;
     if (d.save) {
       picked = d.save;
       renderSaves();
@@ -150,6 +153,10 @@ export function offlineScreen(root, { onPick }) {
     // Body for POST /api/server/start
     startRequest() {
       return { save: picked, ...choice() };
+    },
+    lock(on) {
+      locked = on;
+      root.classList.toggle("locked", on);
     },
     showError(text) {
       el.error.textContent = text;
