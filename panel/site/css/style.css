@@ -205,6 +205,8 @@ a { color: inherit; }
 
 /* Typing in the console: it gets the whole height above the keyboard */
 .page.typing > .metrics, .page.typing > .address { display: none; }
+/* A stop in progress: the Online screen stays, faded and inactive */
+.page.locked > .players, .page.locked > .metrics, .page.locked > .console { opacity: .45; }
 
 /* --- Bottom sheet ------------------------------------------------------------ */
 

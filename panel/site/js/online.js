@@ -19,6 +19,24 @@ export function onlineScreen(root, { sheet, refresh, report }) {
   let busy = false;
   let consoleKey = "";
 
+  // The last players and metrics of an online server, shown while it stops.
+  // Kept in localStorage too, so a page opened during the backup still has them.
+  const SNAPSHOT_KEY = "online-snapshot";
+  let snapshot = null; // { id, players, metrics }
+  try {
+    snapshot = JSON.parse(localStorage.getItem(SNAPSHOT_KEY));
+  } catch {
+    // no storage: only this page's own data
+  }
+  function saveSnapshot(data) {
+    snapshot = { id: data.server?.id, players: data.players, metrics: data.metrics };
+    try {
+      localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snapshot));
+    } catch {
+      // fine without it
+    }
+  }
+
   // --- Players -------------------------------------------------------------
 
   el.playersToggle.addEventListener("click", () => setPlayersOpen(!playersOpen));
@@ -282,17 +300,18 @@ export function onlineScreen(root, { sheet, refresh, report }) {
       const stopping = STOPPING.includes(data.state);
       server = data;
       const online = data.state === "online";
-      if (online || !stopping) {
-        renderPlayers(online ? data.players : null);
-        renderMetrics(online ? data.metrics : null);
-      } else if (data.metrics) {
-        renderMetrics(data.metrics); // the agent keeps measuring during the backup
-      }
+      if (online) saveSnapshot(data);
+      const last = stopping && snapshot?.id === data.server?.id ? snapshot : null;
+      renderPlayers(online ? data.players : last?.players ?? null);
+      // The agent keeps measuring during the backup; after that the last numbers stay
+      renderMetrics(online ? data.metrics : stopping ? data.metrics ?? last?.metrics ?? null : null);
+      // Looks the same while it stops, only inactive
+      root.classList.toggle("locked", stopping);
       el.address.hidden = !data.ip;
       setDomain(data.hostname);
       if (data.ip) setIp(data.ip);
       // The console stays readable while stopping; only an online server takes commands
-      el.console.hidden = !online && !(stopping && consoleKey);
+      el.console.hidden = !online && !stopping;
       el.consoleInput.disabled = !online;
       el.console.querySelector('button[type="submit"]').disabled = !online;
       if (!online) root.classList.remove("typing");
@@ -300,7 +319,7 @@ export function onlineScreen(root, { sheet, refresh, report }) {
         if (STOPPABLE.includes(data.state)) renderSheet();
         else closeSheet();
       }
-      if (first) loadConsole();
+      if (first || (stopping && !consoleKey)) loadConsole();
     },
   };
 }
