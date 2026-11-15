@@ -1,9 +1,9 @@
-// The server card: shows the state from GET /api/server, starts and stops the server
+// The server view: shows the state from GET /api/server, starts and stops the server
 import { api } from "./api.js";
 
 // state: [label, dot color, hint, button action]
 const STATES = {
-  none:          ["Offline",         "gray",   "No server, the world is safe in R2.",                              "start"],
+  none:          ["No server",       "gray",   "No server, the world is safe in R2.",                              "start"],
   creating:      ["Creating",        "yellow", "Hetzner is creating the server.",                                  null],
   booting:       ["Booting",         "yellow", "Installing packages, a few minutes.",                              null],
   restoring:     ["Restoring world", "yellow", "Downloading the latest backup from R2.",                           null],
@@ -15,25 +15,30 @@ const STATES = {
   backup_failed: ["Backup failed",   "red",    "The server is kept. Check the log and retry.",                     "stop"],
 };
 
-const BUTTON_TEXT = { start: "Start server", stop: "Stop server" };
+const BUTTON_TEXT = { start: "Start", stop: "Shut down" };
 
-export function serverCard(card) {
-  // Elements of this card by their data-el name
-  const el = Object.fromEntries([...card.querySelectorAll("[data-el]")].map((e) => [e.dataset.el, e]));
+export function serverCard(root) {
+  // Elements of this view by their data-el name
+  const el = Object.fromEntries([...root.querySelectorAll("[data-el]")].map((e) => [e.dataset.el, e]));
+  let state = "none";
   let busy = false;
   let actionError = "";
 
   function render(data) {
-    const [label, color, hint, action] = STATES[data.state] ?? [data.state, "gray", "", null];
+    state = data.state;
+    const [label, color, hint, action] = STATES[state] ?? [state, "gray", "", null];
     el.label.textContent = label;
     el.dot.className = `dot ${color}`;
+    el.pill.classList.toggle("idle", state === "none");
     el.hint.textContent = hint;
-    el.hostname.textContent = data.hostname;
-    el.address.hidden = !["starting", "online"].includes(data.state);
+    setCopyValue(el.copyHostname, el.hostname, data.hostname);
+    setCopyValue(el.copyIp, el.ip, data.ip ?? "");
+    el.address.hidden = !["starting", "online"].includes(state) || !data.ip;
     el.log.textContent = data.log ?? "";
     el.log.hidden = !data.log;
     el.action.hidden = !action;
-    el.action.textContent = data.state === "backup_failed" ? "Retry backup" : BUTTON_TEXT[action];
+    el.action.className = `btn ${action ?? ""}`;
+    el.action.textContent = state === "backup_failed" ? "Retry backup" : BUTTON_TEXT[action];
     el.action.dataset.action = action ?? "";
     el.action.disabled = busy;
   }
@@ -52,9 +57,7 @@ export function serverCard(card) {
     }
   }
 
-  el.action.addEventListener("click", async () => {
-    const action = el.action.dataset.action;
-    if (action === "stop" && !confirm("Stop the server? Players will be kicked.")) return;
+  async function run(action) {
     busy = true;
     el.action.disabled = true;
     try {
@@ -65,13 +68,45 @@ export function serverCard(card) {
     }
     busy = false;
     await refresh();
+  }
+
+  // Stopping kicks the players, so it asks first. Retrying a failed backup does not.
+  el.action.addEventListener("click", () => {
+    const action = el.action.dataset.action;
+    if (action === "stop" && state !== "backup_failed") el.sheet.hidden = false;
+    else run(action);
   });
 
-  el.copy.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(el.hostname.textContent);
-    el.copy.textContent = "Copied";
-    setTimeout(() => (el.copy.textContent = "Copy"), 1500);
+  const closeSheet = () => (el.sheet.hidden = true);
+  el.close.addEventListener("click", closeSheet);
+  el.cancel.addEventListener("click", closeSheet);
+  document.addEventListener("keydown", (e) => e.key === "Escape" && closeSheet());
+  el.confirm.addEventListener("click", () => {
+    closeSheet();
+    run("stop");
   });
+
+  // Copy pill: the value is kept on the button, the text shows "Copied" for a moment after a tap
+  function setCopyValue(button, label, value) {
+    button.dataset.value = value;
+    if (!button.classList.contains("copied")) label.textContent = value;
+  }
+
+  function copyPill(button, label) {
+    let timer;
+    button.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(button.dataset.value);
+      clearTimeout(timer);
+      label.textContent = "Copied";
+      button.classList.add("copied");
+      timer = setTimeout(() => {
+        button.classList.remove("copied");
+        label.textContent = button.dataset.value;
+      }, 1600);
+    });
+  }
+  copyPill(el.copyHostname, el.hostname);
+  copyPill(el.copyIp, el.ip);
 
   refresh();
   setInterval(refresh, 5000);

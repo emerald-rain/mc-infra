@@ -4,32 +4,149 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MC Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
 <script type="module" src="/js/main.js"></script>
 </head>
 <body>
 
-<header class="page-header">
-  <h1>KLADNASH</h1>
-</header>
+<!-- Server: state, address, start/stop. Logic: js/server-card.js -->
+<div id="server">
 
-<main class="cards">
-
-  <!-- Server: state, address, start/stop. Logic: js/server-card.js -->
-  <section class="card" id="server-card">
-    <h2>Server</h2>
-    <div class="state"><span class="dot" data-el="dot"></span><span data-el="label">Loading…</span></div>
-    <p class="hint" data-el="hint"></p>
-    <div class="address" data-el="address" hidden>
-      <span data-el="hostname"></span>
-      <button type="button" data-el="copy">Copy</button>
+  <header class="top-bar">
+    <svg class="logo" width="24.5" height="28" viewBox="0 0 14 16" shape-rendering="crispEdges" role="img" aria-label="Kladnash">
+      <rect x="4" y="0" width="2" height="1" fill="#893f34"/>
+      <rect x="3" y="1" width="1" height="1" fill="#893f34"/>
+      <rect x="4" y="1" width="1" height="1" fill="#f8c442"/>
+      <rect x="5" y="1" width="1" height="1" fill="#893f34"/>
+      <rect x="3" y="2" width="1" height="1" fill="#893f34"/>
+      <rect x="4" y="2" width="1" height="1" fill="#f17226"/>
+      <rect x="5" y="2" width="1" height="1" fill="#f8c442"/>
+      <rect x="6" y="2" width="1" height="1" fill="#893f34"/>
+      <rect x="2" y="3" width="3" height="1" fill="#893f34"/>
+      <rect x="5" y="3" width="1" height="1" fill="#f17226"/>
+      <rect x="6" y="3" width="1" height="1" fill="#f8c442"/>
+      <rect x="7" y="3" width="1" height="1" fill="#893f34"/>
+      <rect x="1" y="4" width="1" height="1" fill="#893f34"/>
+      <rect x="2" y="4" width="6" height="1" fill="#f8c442"/>
+      <rect x="8" y="4" width="1" height="1" fill="#893f34"/>
+      <rect x="0" y="5" width="1" height="1" fill="#893f34"/>
+      <rect x="1" y="5" width="8" height="1" fill="#f8c442"/>
+      <rect x="9" y="5" width="1" height="1" fill="#893f34"/>
+      <rect x="0" y="6" width="1" height="1" fill="#893f34"/>
+      <rect x="1" y="6" width="8" height="1" fill="#f8c442"/>
+      <rect x="9" y="6" width="1" height="1" fill="#893f34"/>
+      <rect x="0" y="7" width="1" height="1" fill="#893f34"/>
+      <rect x="1" y="7" width="1" height="1" fill="#f8c442"/>
+      <rect x="2" y="7" width="1" height="1" fill="#893f34"/>
+      <rect x="3" y="7" width="1" height="1" fill="#eceee9"/>
+      <rect x="4" y="7" width="2" height="1" fill="#f8c442"/>
+      <rect x="6" y="7" width="1" height="1" fill="#893f34"/>
+      <rect x="7" y="7" width="1" height="1" fill="#eceee9"/>
+      <rect x="8" y="7" width="2" height="1" fill="#f8c442"/>
+      <rect x="10" y="7" width="1" height="1" fill="#893f34"/>
+      <rect x="12" y="7" width="2" height="1" fill="#893f34"/>
+      <rect x="0" y="8" width="1" height="1" fill="#893f34"/>
+      <rect x="1" y="8" width="1" height="1" fill="#f8c442"/>
+      <rect x="2" y="8" width="1" height="1" fill="#893f34"/>
+      <rect x="3" y="8" width="1" height="1" fill="#eceee9"/>
+      <rect x="4" y="8" width="2" height="1" fill="#f8c442"/>
+      <rect x="6" y="8" width="1" height="1" fill="#893f34"/>
+      <rect x="7" y="8" width="1" height="1" fill="#eceee9"/>
+      <rect x="8" y="8" width="1" height="1" fill="#f8c442"/>
+      <rect x="9" y="8" width="1" height="1" fill="#f17226"/>
+      <rect x="10" y="8" width="1" height="1" fill="#f8c442"/>
+      <rect x="11" y="8" width="1" height="1" fill="#893f34"/>
+      <rect x="12" y="8" width="1" height="1" fill="#f17226"/>
+      <rect x="13" y="8" width="1" height="1" fill="#893f34"/>
+      <rect x="0" y="9" width="1" height="1" fill="#893f34"/>
+      <rect x="1" y="9" width="2" height="1" fill="#f8c442"/>
+      <rect x="3" y="9" width="2" height="1" fill="#f17226"/>
+      <rect x="5" y="9" width="5" height="1" fill="#f8c442"/>
+      <rect x="10" y="9" width="3" height="1" fill="#f17226"/>
+      <rect x="13" y="9" width="1" height="1" fill="#893f34"/>
+      <rect x="0" y="10" width="1" height="1" fill="#893f34"/>
+      <rect x="1" y="10" width="1" height="1" fill="#f17226"/>
+      <rect x="2" y="10" width="5" height="1" fill="#f8c442"/>
+      <rect x="7" y="10" width="1" height="1" fill="#f17226"/>
+      <rect x="8" y="10" width="4" height="1" fill="#f8c442"/>
+      <rect x="12" y="10" width="1" height="1" fill="#893f34"/>
+      <rect x="0" y="11" width="1" height="1" fill="#893f34"/>
+      <rect x="1" y="11" width="1" height="1" fill="#f8c442"/>
+      <rect x="2" y="11" width="1" height="1" fill="#f17226"/>
+      <rect x="3" y="11" width="3" height="1" fill="#f8c442"/>
+      <rect x="6" y="11" width="3" height="1" fill="#f17226"/>
+      <rect x="9" y="11" width="2" height="1" fill="#f8c442"/>
+      <rect x="11" y="11" width="1" height="1" fill="#f17226"/>
+      <rect x="12" y="11" width="1" height="1" fill="#f8c442"/>
+      <rect x="13" y="11" width="1" height="1" fill="#893f34"/>
+      <rect x="1" y="12" width="1" height="1" fill="#893f34"/>
+      <rect x="2" y="12" width="1" height="1" fill="#f8c442"/>
+      <rect x="3" y="12" width="8" height="1" fill="#f17226"/>
+      <rect x="11" y="12" width="3" height="1" fill="#893f34"/>
+      <rect x="2" y="13" width="1" height="1" fill="#893f34"/>
+      <rect x="3" y="13" width="7" height="1" fill="#f17226"/>
+      <rect x="10" y="13" width="1" height="1" fill="#893f34"/>
+      <rect x="3" y="14" width="1" height="1" fill="#893f34"/>
+      <rect x="4" y="14" width="1" height="1" fill="#eb6582"/>
+      <rect x="5" y="14" width="3" height="1" fill="#893f34"/>
+      <rect x="8" y="14" width="1" height="1" fill="#eb6582"/>
+      <rect x="9" y="14" width="1" height="1" fill="#893f34"/>
+      <rect x="2" y="15" width="3" height="1" fill="#893f34"/>
+      <rect x="8" y="15" width="2" height="1" fill="#893f34"/>
+    </svg>
+    <div class="top-actions">
+      <div class="pill" data-el="pill" role="status"><span class="dot" data-el="dot"></span><strong data-el="label">Loading…</strong></div>
+      <button type="button" class="btn" data-el="action" hidden></button>
     </div>
-    <button type="button" class="primary" data-el="action" hidden></button>
-    <p class="error" data-el="error" hidden></p>
-    <pre class="log" data-el="log" hidden></pre>
-  </section>
+  </header>
 
-</main>
+  <main class="cards">
+
+    <section class="card" aria-label="Server">
+      <div class="card-head"><h2>Server</h2></div>
+      <div class="card-body">
+        <p class="hint" data-el="hint"></p>
+        <p class="error" data-el="error" hidden></p>
+        <pre class="log" data-el="log" hidden></pre>
+      </div>
+    </section>
+
+    <div class="address" data-el="address" hidden>
+      <button type="button" class="copy" data-el="copyHostname" aria-label="Copy server domain">
+        <span class="copy-text strong" data-el="hostname"></span>
+        <svg class="icon-copy" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg>
+        <svg class="icon-done" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>
+      </button>
+      <span class="or">or</span>
+      <button type="button" class="copy" data-el="copyIp" aria-label="Copy server IP">
+        <span class="copy-text" data-el="ip"></span>
+        <svg class="icon-copy" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 3.5v-.5a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 3v5A1.5 1.5 0 0 0 4 9.5h.5"/></svg>
+        <svg class="icon-done" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Confirm sheet for stopping the server -->
+  <div class="sheet" data-el="sheet" hidden>
+    <button type="button" class="sheet-backdrop" data-el="close" aria-label="Close"></button>
+    <section class="sheet-panel" role="dialog" aria-label="Shut down server">
+      <span class="sheet-handle" aria-hidden="true"></span>
+      <div class="sheet-text">
+        <h2>Shut down server</h2>
+        <p class="hint">Stops right away and disconnects everyone online. The world is backed up to R2, then the server is deleted.</p>
+      </div>
+      <div class="sheet-buttons">
+        <button type="button" class="btn secondary" data-el="cancel">Cancel</button>
+        <button type="button" class="btn stop" data-el="confirm">Shut down now</button>
+      </div>
+    </section>
+  </div>
+
+</div>
 
 </body>
 </html>
