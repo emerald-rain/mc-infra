@@ -83,8 +83,7 @@
 
   /* spacing */
   --page-x: 16px;             /* page side padding (log uses 28px) */
-  --content-max: 480px;       /* one column on wide screens: header, cards, sheet line up */
-  --log-max: 640px;           /* the log's column, and the header above it */
+  --content-max: 480px;       /* one column on wide screens: header, cards, sheet and log line up */
   --stack: 12px;              /* vertical gap between blocks */
   --card-x: 12px;             /* inner horizontal padding of cards and pills */
   --gap-pill: 10px;

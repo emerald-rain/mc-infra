@@ -40,7 +40,6 @@ a { color: inherit; }
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   height: var(--h-control); max-width: var(--content-max); margin: 0 auto;
 }
-.top.on-logs .top-in { max-width: var(--log-max); }
 .logo { display: flex; flex: 0 0 auto; }
 .logo svg { display: block; }
 .top-right { display: flex; align-items: center; gap: var(--gap-tight); min-width: 0; }
@@ -323,7 +322,7 @@ a { color: inherit; }
   padding: calc(55px + env(safe-area-inset-top)) 28px calc(24px + env(safe-area-inset-bottom));
   font-family: var(--font-mono); font-size: var(--fs-11); line-height: var(--lh-log);
 }
-.logs-scroll > * { max-width: var(--log-max); margin-left: auto; margin-right: auto; }
+.logs-scroll > * { max-width: var(--content-max); margin-left: auto; margin-right: auto; }
 .logs-mark { margin-bottom: 4px; }
 .logs-mark svg, .session-head svg { display: block; }
 .logs-caption { color: var(--text-4); margin-bottom: 4px; }
