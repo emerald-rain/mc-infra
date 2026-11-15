@@ -58,7 +58,8 @@ async function getServer(request, env) {
         data.server = {
             id: server.id,
             type: server.server_type.name,
-            location: server.datacenter.location.name,
+            // Hetzner dropped "datacenter" from servers; "location" is the current field
+            location: (server.location ?? server.datacenter?.location)?.name ?? null,
             createdAt: server.created,
         };
     }

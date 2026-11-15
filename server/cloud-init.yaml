@@ -69,7 +69,8 @@ runcmd:
   - [systemctl, reload, ssh]
   - [sysctl, --system]
   - [docker, run, --rm, hello-world]   # fails loudly if docker is broken
-  - [su, -, malysh, -c, "git clone -q https://github.com/emerald-rain/mc-infra.git"]
+  # __REPO_BRANCH__: REPO_BRANCH in panel/wrangler.toml, so the agent matches the deployed panel
+  - [su, -, malysh, -c, "git clone -q -b __REPO_BRANCH__ https://github.com/emerald-rain/mc-infra.git"]
   # Tunnel and agent; the agent runs agent/start.sh itself (restore the world, start Minecraft),
   # so the panel's log shows every step
   - [su, -, malysh, -c, "docker compose -f mc-infra/server/docker-compose.yml up -d cloudflared"]

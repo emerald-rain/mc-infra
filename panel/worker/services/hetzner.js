@@ -33,7 +33,9 @@ export async function createServer(env, { type, location, save }) {
         // Without an SSH key Hetzner emails a root password; root login is disabled anyway
         ssh_keys: [env.SSH_KEY_NAME],
         firewalls: [{ firewall: firewalls.firewalls[0].id }],
-        user_data: cloudInit.replaceAll("__MC_ENV__", btoa(serverSecrets(env, save))),
+        user_data: cloudInit
+            .replaceAll("__MC_ENV__", btoa(serverSecrets(env, save)))
+            .replaceAll("__REPO_BRANCH__", env.REPO_BRANCH || "main"),
     });
     return data.server;
 }
