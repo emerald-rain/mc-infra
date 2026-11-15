@@ -16,7 +16,7 @@ type = "Text"
 globs = ["**/*.yaml"]
 fallthrough = true
 
-# Every minute: delete the server once its backup is done
+# Every minute: carry out the shutdown plan, delete the server once its backup is done
 [triggers]
 crons = ["* * * * *"]
 

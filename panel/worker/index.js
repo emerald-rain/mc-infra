@@ -31,8 +31,8 @@ export default {
         }
     },
 
-    // Every minute, see wrangler.toml
+    // Every minute, see wrangler.toml: shutdown plans, deleting the server after its backup
     async scheduled(controller, env) {
-        await server.deleteAfterBackup(env);
+        await server.tick(env);
     },
 };
