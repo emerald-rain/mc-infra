@@ -221,13 +221,15 @@ LOG_LINE = re.compile(r"^(\S+)\s+(?:\[[\d:]+\]\s*)?(?:\[[^\]]*\]:?\s*)?(?:\([\w-
 
 # The agent's own RCON calls (players, TPS every few seconds) make Minecraft log these
 RCON_NOISE = re.compile(r"^Thread RCON Client \S+ (started|shutting down)$")
+# They are 4 lines every 10 s, so read far back to still find 100 real ones
+DOCKER_TAIL = 3000
 
 
 def console_lines(tail=100):
     """The end of Minecraft's output, plus the commands sent from the panel, oldest first."""
     try:
         result = subprocess.run(
-            ["docker", "logs", "--timestamps", "--tail", str(tail), "mc-server"],
+            ["docker", "logs", "--timestamps", "--tail", str(DOCKER_TAIL), "mc-server"],
             capture_output=True, text=True, timeout=10,
         )
     except (OSError, subprocess.TimeoutExpired):
