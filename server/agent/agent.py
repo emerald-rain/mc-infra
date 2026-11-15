@@ -128,7 +128,7 @@ class Sampler:
         self.tps = None
         self._joined = {}     # player name -> time first seen online
         self._last_cpu = None
-        self.boot_console = []  # Minecraft's last lines while it was starting
+        self.boot_console = []  # Minecraft's output from the container start until it was healthy
         self.online_at = None   # when the container first became healthy
 
     def start(self):
@@ -156,10 +156,11 @@ class Sampler:
         if container != "running":
             self.players, self.tps, self._joined = None, None, {}
             return
-        if health == "healthy":
-            self.online_at = self.online_at or utc_now()
-        elif not self.online_at:
-            self.boot_console = [line["text"] for line in console_lines()[-6:]]
+        if not self.online_at:
+            # The whole boot, up to and including the line that made it healthy
+            self.boot_console = [line["text"] for line in console_lines(BOOT_LINES, commands=False)]
+            if health == "healthy":
+                self.online_at = utc_now()
         self._sample_players()
         self._sample_tps()
 
@@ -222,11 +223,15 @@ COMMANDS = deque(maxlen=50)
 LOG_LINE = re.compile(r"^(\S+)\s+(?:\[[\d:]+\]\s*)?(?:\[[^\]]*\]:?\s*)?(?:\([\w-]+\)\s*)?(.*)$")
 
 
-def console_lines():
+# How much of Minecraft's boot output the panel's log keeps
+BOOT_LINES = 500
+
+
+def console_lines(tail=100, commands=True):
     """The end of Minecraft's output, plus the commands sent from the panel, oldest first."""
     try:
         result = subprocess.run(
-            ["docker", "logs", "--timestamps", "--tail", "100", "mc-server"],
+            ["docker", "logs", "--timestamps", "--tail", str(tail), "mc-server"],
             capture_output=True, text=True, timeout=10,
         )
     except (OSError, subprocess.TimeoutExpired):
@@ -237,9 +242,10 @@ def console_lines():
         if match and match.group(2).strip():
             # docker gives nanoseconds; keep whole seconds, the panel shows HH:MM:SS
             lines.append({"time": match.group(1)[:19] + "Z", "text": match.group(2), "command": False})
-    lines += list(COMMANDS)
+    if commands:
+        lines += list(COMMANDS)
     lines.sort(key=lambda line: line["time"])
-    return lines[-100:]
+    return lines[-tail:]
 
 
 # --- Handlers: each returns (http_status, json_data) ---

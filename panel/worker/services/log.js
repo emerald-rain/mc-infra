@@ -4,7 +4,7 @@
 // Written only when a server is created and right before it is deleted; the part in between
 // is built live from Hetzner and the agent (api/log.js).
 const KEY = "panel/log.json";
-export const MAX_LINES = 500;
+export const MAX_LINES = 3000;
 
 export async function load(env) {
     const object = await env.WORLD.get(KEY);
