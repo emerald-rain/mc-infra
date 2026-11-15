@@ -22,17 +22,18 @@ export async function findServer(env) {
     return data.servers[0] ?? null;
 }
 
-export async function createServer(env) {
+// type ("cpx12"), location ("hel1") and save (backup name) come from the site's Start
+export async function createServer(env, { type, location, save }) {
     const firewalls = await hetzner(env, "GET", `/firewalls?name=${env.FIREWALL_NAME}`);
     const data = await hetzner(env, "POST", "/servers", {
         name: env.SERVER_NAME,
-        server_type: env.SERVER_TYPE,
-        location: env.LOCATION,
+        server_type: type,
+        location,
         image: "debian-13",
         // Without an SSH key Hetzner emails a root password; root login is disabled anyway
         ssh_keys: [env.SSH_KEY_NAME],
         firewalls: [{ firewall: firewalls.firewalls[0].id }],
-        user_data: cloudInit.replaceAll("__MC_ENV__", btoa(serverSecrets(env))),
+        user_data: cloudInit.replaceAll("__MC_ENV__", btoa(serverSecrets(env, save))),
     });
     return data.server;
 }
@@ -41,9 +42,28 @@ export async function deleteServer(env, id) {
     await hetzner(env, "DELETE", `/servers/${id}`);
 }
 
+// Where each server type can be created now: { cpx12: ["nbg1", "hel1"], ... }
+export async function availability(env) {
+    const [{ datacenters }, { server_types }] = await Promise.all([
+        hetzner(env, "GET", "/datacenters"),
+        hetzner(env, "GET", "/server_types?per_page=50"),
+    ]);
+    const names = Object.fromEntries(server_types.map((t) => [t.id, t.name]));
+    const result = {};
+    for (const dc of datacenters) {
+        for (const id of dc.server_types.available) {
+            const list = (result[names[id]] ??= []);
+            if (!list.includes(dc.location.name)) list.push(dc.location.name);
+        }
+    }
+    return result;
+}
+
 // Contents of /etc/mc.env on the server (ASCII only, so plain btoa() is enough)
-function serverSecrets(env) {
+function serverSecrets(env, save) {
     return [
+        // The backup start.sh restores; empty means the latest
+        `MC_SAVE=${save ?? ""}`,
         `TUNNEL_TOKEN=${env.TUNNEL_TOKEN}`,
         `AGENT_TOKEN=${env.AGENT_TOKEN}`,
         // rclone remote "r2:" without a config file

@@ -16,6 +16,11 @@ type = "Text"
 globs = ["**/*.yaml"]
 fallthrough = true
 
+# World backups (r2:mc-world/backups), listed and downloaded by the panel
+[[r2_buckets]]
+binding = "WORLD"
+bucket_name = "mc-world"
+
 # Every minute: carry out the shutdown plan, delete the server once its backup is done
 [triggers]
 crons = ["* * * * *"]
@@ -27,6 +32,7 @@ AGENT_URL = "https://agent.knash.party"
 
 # The Hetzner server
 SERVER_NAME = "mc"
+# Defaults when the site does not choose
 SERVER_TYPE = "cpx12"
 LOCATION = "nbg1"
 FIREWALL_NAME = "dev-fw"

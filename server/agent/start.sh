@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Restores the latest world backup from R2 and starts Minecraft.
+# Restores a world backup from R2 (MC_SAVE, picked in the panel, or the latest) and starts Minecraft.
 set -euo pipefail
 set -a; source /etc/mc.env; set +a   # rclone's "r2:" remote is configured there
 
@@ -8,9 +8,14 @@ MC_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_DIR="$MC_DIR/data"
 WORLD_DIR="$DATA_DIR/world"
 
-# Backup names are UTC timestamps, so the last one alphabetically is the newest
-LATEST="$(rclone lsf "$BACKUPS/" | sort | tail -n 1)"
-[ -n "$LATEST" ] || { echo "ERROR: no backups in $BACKUPS/" >&2; exit 1; }
+if [ -n "${MC_SAVE:-}" ]; then
+    LATEST="$MC_SAVE"
+else
+    echo "Looking for the latest backup in $BACKUPS ..."
+    # Backup names are UTC timestamps, so the last one alphabetically is the newest
+    LATEST="$(rclone lsf "$BACKUPS/" | sort | tail -n 1)"
+    [ -n "$LATEST" ] || { echo "ERROR: no backups in $BACKUPS/" >&2; exit 1; }
+fi
 
 ARCHIVE="$(mktemp -p /var/tmp --suffix=.tar.zst)"
 trap 'rm -f "$ARCHIVE"' EXIT

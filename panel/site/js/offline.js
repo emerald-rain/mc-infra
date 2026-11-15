@@ -120,7 +120,7 @@ export function offlineScreen(root, { onPick }) {
       renderSaves();
     } else if (d.download) {
       // The Worker answers with Content-Disposition: attachment, so the page stays
-      window.location.href = `/api/backups/${encodeURIComponent(d.download)}`;
+      window.location.href = `/api/backup?key=${encodeURIComponent(d.download)}`;
       downloaded = d.download;
       renderSaves();
       clearTimeout(timer);

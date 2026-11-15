@@ -2,6 +2,7 @@
 import * as hetzner from "../services/hetzner.js";
 import * as dns from "../services/dns.js";
 import * as agent from "../services/agent.js";
+import * as backups from "../services/backups.js";
 import { HttpError } from "../http.js";
 
 export const routes = {
@@ -66,11 +67,22 @@ async function getServer(request, env) {
     return data;
 }
 
+const TYPES = ["cx23", "cpx12", "cpx22"];
+const LOCATIONS = ["nbg1", "fsn1", "hel1"];
+
+// { save, type, location } from the site; each falls back to the default
 async function start(request, env) {
+    const body = await request.json().catch(() => ({}));
+    const type = body.type ?? env.SERVER_TYPE;
+    const location = body.location ?? env.LOCATION;
+    const save = body.save ?? null;
+    if (!TYPES.includes(type)) throw new HttpError(400, `unknown server type ${type}`);
+    if (!LOCATIONS.includes(location)) throw new HttpError(400, `unknown location ${location}`);
+    if (save && !(await backups.exists(env, save))) throw new HttpError(400, `no backup ${save}`);
     if (await hetzner.findServer(env)) {
         throw new HttpError(409, "server already exists");
     }
-    const server = await hetzner.createServer(env);
+    const server = await hetzner.createServer(env, { type, location, save });
     await dns.setMinecraftIp(env, server.public_net.ipv4.ip);
     return { state: "creating" };
 }
