@@ -33,6 +33,7 @@ export function offlineScreen(root, { onPick }) {
   let type = null;      // chosen by the user, null = default
   let location = null;
   let downloaded = null;
+  let pastOpen = false;
   let timer;
 
   // From Hetzner: { type: { location: €/hour } } with only the locations it can be created in now.
@@ -115,6 +116,16 @@ export function offlineScreen(root, { onPick }) {
     ).join("");
   }
 
+  // Past servers are collapsed by default; the count stays visible in the header
+  function setPastOpen(open) {
+    pastOpen = open;
+    el.past.classList.toggle("open", open);
+    el.pastToggle.setAttribute("aria-expanded", open);
+    el.pastList.hidden = !open;
+  }
+
+  el.pastToggle.addEventListener("click", () => setPastOpen(!pastOpen));
+
   let locked = false; // a server is being started: the choices stay on screen, frozen
 
   root.addEventListener("click", (e) => {
@@ -148,6 +159,7 @@ export function offlineScreen(root, { onPick }) {
   });
 
   renderPast();
+  setPastOpen(false);
 
   return {
     // Body for POST /api/server/start

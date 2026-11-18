@@ -1,15 +1,16 @@
 // Server states from GET /api/server (see worker/api/server.js): label and dot colour
 
+// The pill names the stage only: "Starting" covers every step of a start
 export const STATES = {
   none:          { label: "No server",       dot: "ring" },
-  creating:      { label: "Creating",        dot: "amber" },
-  booting:       { label: "Booting",         dot: "amber" },
-  restoring:     { label: "Restoring world", dot: "amber" },
+  creating:      { label: "Starting",        dot: "amber" },
+  booting:       { label: "Starting",        dot: "amber" },
+  restoring:     { label: "Starting",        dot: "amber" },
   starting:      { label: "Starting",        dot: "amber" },
   online:        { label: "Online",          dot: "green" },
   stopped:       { label: "Stopped",         dot: "red" },
   backing_up:    { label: "Backing up",      dot: "amber" },
-  deleting:      { label: "Deleting",        dot: "amber" },
+  deleting:      { label: "Backing up",      dot: "amber" },
   backup_failed: { label: "Backup failed",   dot: "red" },
   start_failed:  { label: "Start failed",    dot: "red" },
 };

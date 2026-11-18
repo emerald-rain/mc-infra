@@ -123,8 +123,11 @@
   </section>
 
   <section class="card past" aria-label="Past servers" data-el="past" hidden>
-    <div class="card-head"><h2>Past servers</h2><span class="meta" data-el="pastCount"></span></div>
-    <ul class="past-list" data-el="pastList"></ul>
+    <button type="button" class="card-head past-toggle" data-el="pastToggle" aria-expanded="false" aria-controls="past-list">
+      <span class="past-title">Past servers</span>
+      <span class="past-side"><span class="meta" data-el="pastCount"></span><svg class="chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg></span>
+    </button>
+    <ul class="past-list" id="past-list" data-el="pastList" hidden></ul>
   </section>
 
   <p class="error" data-el="error" hidden></p>
