@@ -53,7 +53,8 @@ a { color: inherit; }
   white-space: nowrap;
 }
 .status { padding: 0 11px; color: var(--text-pill); min-width: 0; overflow: hidden; }
-.status.idle { border-style: dashed; border-color: var(--border-dashed); background: transparent; color: var(--text-3); }
+/* Every state shares the pill container: No server is set apart only by muted text and the hollow ring dot */
+.status.idle { color: var(--text-3); }
 .status .part { display: flex; align-items: center; gap: var(--gap-tight); }
 .status .ring-part { gap: 5px; }
 .status b { color: var(--text); font-weight: var(--fw-semibold); }

@@ -29,7 +29,6 @@
   --border-muted: #161616;    /* "Past servers" card (secondary) */
   --divider-muted: #141414;   /* rows inside "Past servers" */
   --border-selected: #5a5a5a; /* selected option outline */
-  --border-dashed: #2e2e2e;   /* "No server" status pill (dashed) */
   --rule: #262626;            /* vertical separators between metrics, console tail rule in log */
   --grabber: #2a2a2a;         /* sheet handle */
 

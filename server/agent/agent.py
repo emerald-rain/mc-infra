@@ -62,11 +62,13 @@ class Job:
                 if line.strip():
                     self.lines.append({"time": utc_now(), "text": line.rstrip()})
                     del self.lines[:-300]
-            self.status = "done" if proc.wait() == 0 else "failed"
+            status = "done" if proc.wait() == 0 else "failed"
         except Exception as err:
             self.lines.append({"time": utc_now(), "text": f"ERROR: {self.script} did not run: {err}"})
-            self.status = "failed"
+            status = "failed"
+        # Publish the end time before the terminal status, so the panel never sees "done" without it
         self.finished = utc_now()
+        self.status = status
 
     def to_json(self, lines=False):
         data = {"status": self.status, "log": "\n".join(l["text"] for l in self.lines[-40:])}
@@ -266,15 +268,18 @@ def post_console(body):
     command = str(body.get("command", "")).strip().lstrip("/")
     if not command:
         return 400, {"error": "empty command"}
+    # The command's time is when it starts, not when RCON answers
+    started_at = utc_now()
     output = rcon(command)
     if output is None:
         return 502, {"error": "rcon failed, is Minecraft running?"}
-    now = utc_now()
-    COMMANDS.append({"time": now, "text": command, "command": True})
+    # The answer arrives together, so all of its lines share one completion time
+    completed_at = utc_now()
+    COMMANDS.append({"time": started_at, "text": command, "command": True})
     # The answer goes to RCON, not to the server log, so keep it here
     for line in output.splitlines():
         if line.strip():
-            COMMANDS.append({"time": now, "text": line, "command": False})
+            COMMANDS.append({"time": completed_at, "text": line, "command": False})
     return 200, {"output": output}
 
 

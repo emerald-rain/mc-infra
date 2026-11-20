@@ -28,13 +28,14 @@ function jobLines(job) {
 }
 
 // The lines worker writes when it creates the server (api/server.js start)
-export function creationLines(server, type, location, hostname, ip) {
-    const t = now();
+// at: when the start operation began, before createServer
+export function creationLines(server, type, location, hostname, ip, at) {
+    const created = now();
     return [
-        line(t, `Creating server ${type} in ${REGIONS[location] ?? location} ...`),
-        line(t, `Server created, id ${server.id}`),
-        line(t, `IP assigned: ${ip}`),
-        line(t, `DNS record updated: ${hostname} -> ${ip}`),
+        line(at, `Creating server ${type} in ${REGIONS[location] ?? location} ...`),
+        line(created, `Server created, id ${server.id}`),
+        line(created, `IP assigned: ${ip}`),
+        line(created, `DNS record updated: ${hostname} -> ${ip}`),
     ];
 }
 
@@ -55,7 +56,8 @@ function startLines(stored, server, agentLog, hostname) {
         );
         return lines;
     }
-    add(line(agentLog.agentStarted ?? server.created, "Hetzner: server is running"));
+    // The time the line first appeared: server.created, not the later agent start
+    add(line(server.created, "Hetzner: server is running"));
     add(line(agentLog.agentStarted ?? server.created, "Agent connected"));
     const start = agentLog.jobs.start;
     if (start && start.status !== "idle") add(...jobLines(start));

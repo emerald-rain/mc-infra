@@ -97,7 +97,7 @@ async function start(request, env) {
         kind: "start",
         at,
         fields: [["Host", type], ["Region", log.REGIONS[location] ?? location], ["Save", saveName]],
-        lines: log.creationLines(server, type, location, env.MC_HOSTNAME, ip),
+        lines: log.creationLines(server, type, location, env.MC_HOSTNAME, ip, at),
         serverId: server.id,
     });
     return { state: "creating" };
