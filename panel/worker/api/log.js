@@ -44,21 +44,25 @@ function startLines(stored, server, agentLog, hostname) {
     const lines = stored.lines.filter((l) => !l.live);
     const live = (l) => ({ ...l, live: true });
     const add = (...more) => lines.push(...more.map(live));
+    // Hetzner's created time can be a moment before the stored "DNS record updated" line,
+    // which would put the live lines before the creation lines; start after the last one.
+    const last = lines.at(-1)?.time;
+    const created = last && Date.parse(last) > Date.parse(server.created) ? last : server.created;
 
     if (server.status !== "running") {
-        add(line(server.created, `Hetzner: server is ${server.status} ...`, "spin"));
+        add(line(created, `Hetzner: server is ${server.status} ...`, "spin"));
         return lines;
     }
     if (!agentLog) {
         add(
-            line(server.created, "Hetzner: server is running"),
-            line(server.created, "Waiting for the server agent ...", "spin", { hint: "Installing packages, a few minutes." }),
+            line(created, "Hetzner: server is running"),
+            line(created, "Waiting for the server agent ...", "spin", { hint: "Installing packages, a few minutes." }),
         );
         return lines;
     }
-    // The time the line first appeared: server.created, not the later agent start
-    add(line(server.created, "Hetzner: server is running"));
-    add(line(agentLog.agentStarted ?? server.created, "Agent connected"));
+    // The time the line first appeared: the creation, not the later agent start
+    add(line(created, "Hetzner: server is running"));
+    add(line(agentLog.agentStarted ?? created, "Agent connected"));
     const start = agentLog.jobs.start;
     if (start && start.status !== "idle") add(...jobLines(start));
     if (start?.status !== "done") return lines;

@@ -79,6 +79,32 @@ test("Hetzner: server is running keeps its first timestamp when the agent connec
     assert.equal(lineOf(restoring.sessions[0], "Agent connected").time, AGENT_STARTED);
 });
 
+test("live start lines do not go back before the stored creation lines", async () => {
+    // Hetzner's created time is a moment before the lines written after createServer returned
+    const createdAt = "2026-11-21T09:59:59Z";
+    const createdLine = "2026-11-21T10:00:00Z";
+    const dnsLine = "2026-11-21T10:00:01Z";
+    const stored = {
+        sessions: [
+            {
+                kind: "start",
+                at: createdAt,
+                fields: [],
+                lines: [
+                    { time: createdAt, text: "Creating server cpx12 in Helsinki ...", kind: "done" },
+                    { time: createdLine, text: "Server created, id 42", kind: "done" },
+                    { time: dnsLine, text: "DNS record updated: mc.example -> 203.0.113.1", kind: "done" },
+                ],
+                serverId: "42",
+                closed: false,
+            },
+        ],
+    };
+    const built = await log.build({ ...env(), WORLD: { get: async () => ({ json: async () => stored }) } }, server, "booting");
+
+    assert.equal(lineOf(built.sessions[0], "Hetzner: server is running").time, dnsLine);
+});
+
 test("stop session and its delete line use the job's stable start and finish times", async (t) => {
     const realFetch = globalThis.fetch;
     t.after(() => {
