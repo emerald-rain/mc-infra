@@ -33,7 +33,7 @@ AGENT_URL = "https://agent.knash.party"
 # The Hetzner server
 SERVER_NAME = "mc"
 # Branch the server clones its code (agent, scripts) from; must match the deployed panel
-REPO_BRANCH = "main"
+REPO_BRANCH = "simplify"
 
 # Defaults when the site does not choose
 SERVER_TYPE = "cpx12"
