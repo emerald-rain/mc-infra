@@ -28,7 +28,6 @@
   --divider: #1a1a1a;         /* card header divider, list row separators */
   --border-muted: #161616;    /* "Past servers" card (secondary) */
   --divider-muted: #141414;   /* rows inside "Past servers" */
-  --border-selected: #5a5a5a; /* selected option outline */
   --rule: #262626;            /* vertical separators between metrics, console tail rule in log */
   --grabber: #2a2a2a;         /* sheet handle */
 
@@ -49,7 +48,6 @@
   --green-done: #3f8f5c;      /* completed step checkmarks in the log */
   --amber: #f0bf55;           /* in-progress spinner, "starting" dot */
   --amber-track: #3a2c10;     /* spinner track */
-  --amber-note: #d9a441;      /* "older CPU" note on cx23 */
   --red-text: #ff8a80;        /* Shut down */
   --red-bg: #3a1214;          /* Shut down */
   --red-err: #ff6b6b;         /* error lines in the log */
@@ -66,7 +64,6 @@
   /* shape */
   --r-pill: 999px;
   --r-card: 16px;
-  --r-option: 12px;           /* radio cards in the sheet, server type cards */
   --r-avatar: 3px;            /* player heads */
 
   /* sizes */

@@ -1,27 +1,9 @@
-// No server screen (DESIGN.md §4): R2 usage, the save to start from, server type and location, past servers
+// No server screen (DESIGN.md §4): R2 usage, the save to start from, past servers
 import { esc, ago, gb, gbTotal, elements } from "./format.js";
 import { PAST_SERVERS } from "./past-servers.js";
 
 const DONE_MS = 1600;
 
-const LOCATIONS = [
-  { id: "nbg1", name: "Nuremberg", flag: "de" },
-  { id: "fsn1", name: "Falkenstein", flag: "de" },
-  { id: "hel1", name: "Helsinki", flag: "fi" },
-];
-
-// €/hour in Helsinki, used only when Hetzner did not answer; Germany costs €2/month more (DESIGN.md §4.3)
-const TYPES = [
-  { id: "cx23", price: 0.009, note: "older CPU" },
-  { id: "cpx12", price: 0.015, note: "" },
-  { id: "cpx22", price: 0.026, note: "" },
-];
-const GERMANY_EXTRA = 2 / 730;
-
-const FLAGS = {
-  de: `<svg width="14" height="10" viewBox="0 0 5 3" aria-hidden="true"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#dd0000"/><rect y="2" width="5" height="1" fill="#ffce00"/></svg>`,
-  fi: `<svg width="14" height="10" viewBox="0 0 18 11" aria-hidden="true"><rect width="18" height="11" fill="#fff"/><rect x="5" width="3" height="11" fill="#003580"/><rect y="4" width="18" height="3" fill="#003580"/></svg>`,
-};
 const ICON_DOWN = `<svg class="icon-down" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5L8 11l3.5-3.5M3 13.5h10"/></svg>`;
 const ICON_CHECK = `<svg class="icon-check" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>`;
 const ICON_CLOUD = `<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 12.5h7a3 3 0 0 0 .4-5.97A4 4 0 0 0 4.2 7.1 2.75 2.75 0 0 0 4.5 12.5z"/><path d="M8 7.5v3.5M6.5 9.5L8 11l1.5-1.5"/></svg>`;
@@ -30,29 +12,9 @@ export function offlineScreen(root, { onPick }) {
   const el = elements(root);
   let data = null;
   let picked = null;    // backup key
-  let type = null;      // chosen by the user, null = default
-  let location = null;
   let downloaded = null;
   let pastOpen = false;
   let timer;
-
-  // From Hetzner: { type: { location: €/hour } } with only the locations it can be created in now.
-  // Without an answer every type counts as available at the fallback price.
-  const available = (typeId, loc) => {
-    const all = data?.availability;
-    return !all || all[typeId]?.[loc] != null;
-  };
-  const priceOf = (t, loc) => data?.availability?.[t.id]?.[loc] ?? t.price + (loc === "hel1" ? 0 : GERMANY_EXTRA);
-
-  // Default: cx23 in Helsinki, else cx23 anywhere, else cpx12 in Helsinki (DESIGN.md §4.3)
-  function choice() {
-    const anyCx = LOCATIONS.map((l) => l.id).find((l) => available("cx23", l));
-    const loc = location ?? (available("cx23", "hel1") ? "hel1" : anyCx ?? "hel1");
-    const wanted = type ?? (available("cx23", loc) ? "cx23" : "cpx12");
-    // An unavailable pick falls back to cpx12, then to whatever the location still has
-    const fallback = ["cpx12", ...TYPES.map((t) => t.id)].find((id) => available(id, loc)) ?? wanted;
-    return { location: loc, type: available(wanted, loc) ? wanted : fallback };
-  }
 
   function renderR2() {
     const r2 = data.r2;
@@ -88,24 +50,6 @@ export function offlineScreen(root, { onPick }) {
     onPick(save ? ago(save.uploaded) : null);
   }
 
-  function renderConfig() {
-    el.config.hidden = false;
-    const c = choice();
-    el.types.innerHTML = TYPES.map((t) => {
-      const off = !available(t.id, c.location);
-      const on = t.id === c.type;
-      const price = priceOf(t, c.location);
-      return (
-        `<button type="button" class="type" role="radio" aria-checked="${on}" aria-disabled="${off}" data-type="${t.id}">` +
-        `<span class="type-top"><span class="type-name">${t.id}</span><span class="type-note">${t.note}</span></span>` +
-        `<span class="type-price">${off ? "unavailable" : `€${price.toFixed(3)}/h`}</span></button>`
-      );
-    }).join("");
-    el.locations.innerHTML = LOCATIONS.map((l) =>
-      `<button type="button" class="location" role="radio" aria-checked="${l.id === c.location}" data-location="${l.id}">` +
-      `${FLAGS[l.flag]}<span>${l.name}</span></button>`).join("");
-  }
-
   function renderPast() {
     el.past.hidden = PAST_SERVERS.length === 0;
     el.pastCount.textContent = `${PAST_SERVERS.length} saves`;
@@ -129,7 +73,7 @@ export function offlineScreen(root, { onPick }) {
   let locked = false; // a server is being started: the choices stay on screen, frozen
 
   root.addEventListener("click", (e) => {
-    const t = e.target.closest("[data-save],[data-download],[data-type],[data-location]");
+    const t = e.target.closest("[data-save],[data-download]");
     if (!t) return;
     const d = t.dataset;
     if (locked && !d.download) return;
@@ -146,15 +90,6 @@ export function offlineScreen(root, { onPick }) {
         downloaded = null;
         renderSaves();
       }, DONE_MS);
-    } else if (d.type) {
-      if (t.getAttribute("aria-disabled") === "true") return;
-      type = d.type;
-      renderConfig();
-    } else if (d.location) {
-      location = d.location;
-      // A location without the wanted type falls back to cpx12 (choice() does it)
-      if (type && !available(type, location)) type = null;
-      renderConfig();
     }
   });
 
@@ -164,7 +99,7 @@ export function offlineScreen(root, { onPick }) {
   return {
     // Body for POST /api/server/start
     startRequest() {
-      return { save: picked, ...choice() };
+      return { save: picked };
     },
     lock(on) {
       locked = on;
@@ -178,7 +113,6 @@ export function offlineScreen(root, { onPick }) {
       data = offline;
       renderR2();
       renderSaves();
-      renderConfig();
     },
   };
 }

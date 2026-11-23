@@ -58,6 +58,26 @@ export async function availability(env) {
     return result;
 }
 
+const TYPES = ["cx23", "cpx12", "cpx22"];
+const LOCATIONS = ["hel1", "nbg1", "fsn1"];
+
+// The first available pair: the cheapest type first, Helsinki before Germany.
+// If Hetzner does not answer, the configured default is still worth trying.
+export async function pickServer(env) {
+    let available;
+    try {
+        available = await availability(env);
+    } catch {
+        return { type: env.SERVER_TYPE, location: env.LOCATION };
+    }
+    for (const type of TYPES) {
+        for (const location of LOCATIONS) {
+            if (available[type]?.[location] != null) return { type, location };
+        }
+    }
+    return null;
+}
+
 // Contents of /etc/mc.env on the server (ASCII only, so plain btoa() is enough)
 function serverSecrets(env, save) {
     return [

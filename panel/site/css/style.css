@@ -258,32 +258,9 @@ a { color: inherit; }
 .icon-btn.done .icon-down { display: none; }
 .icon-btn.done .icon-check { display: block; }
 
-.types { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap-tight); padding: 8px; border-top: 1px solid var(--divider); }
-.type {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0;
-  padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--r-option);
-  background: transparent; text-align: left; font-family: var(--font-mono);
-}
-.type-top { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; width: 100%; }
-.type-name { font-size: var(--fs-12); font-weight: var(--fw-semibold); color: var(--text-2); }
-.type-note { font-size: var(--fs-10); color: var(--amber-note); white-space: nowrap; }
-.type-price { font-size: var(--fs-11); color: var(--text-3); white-space: nowrap; }
-.type[aria-checked="true"] { border-color: var(--border-selected); background: var(--surface-selected); }
-.type[aria-checked="true"] .type-name { color: var(--text); }
-.type[aria-disabled="true"] { border-style: dashed; opacity: .6; cursor: default; }
-/* A start in progress: the picked save, type and location stay, the rest fades */
-.locked .save-pick, .locked .type, .locked .location { cursor: default; }
-.locked .save:not(.on), .locked .type[aria-checked="false"], .locked .location[aria-checked="false"] { opacity: .45; }
-
-.locations { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap-tight); padding: 0 8px 8px; }
-.location {
-  display: flex; align-items: center; justify-content: center; gap: var(--gap-tight); min-width: 0;
-  height: var(--h-control); padding: 0 8px; border: 1px solid var(--border); border-radius: var(--r-pill);
-  background: transparent; color: var(--text-2); font: var(--fw-medium) var(--fs-11) var(--font-ui); white-space: nowrap;
-}
-.location svg { flex: 0 0 auto; border-radius: 2px; }
-.location span { overflow: hidden; text-overflow: ellipsis; }
-.location[aria-checked="true"] { border-color: var(--border-selected); background: var(--surface-selected); color: var(--text); }
+/* A start in progress: the picked save stays, the rest fades */
+.locked .save-pick { cursor: default; }
+.locked .save:not(.on) { opacity: .45; }
 
 .page > .past { flex: 0 0 auto; background: transparent; border-color: var(--border-muted); }
 .past-title { font-size: var(--fs-12); font-weight: var(--fw-medium); color: var(--text-3); }

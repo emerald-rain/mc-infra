@@ -1,6 +1,5 @@
-// The "No server" screen: backups to start from, R2 usage, server types per location, downloads
+// The "No server" screen: backups to start from, R2 usage, downloads
 import * as backups from "../services/backups.js";
-import * as hetzner from "../services/hetzner.js";
 import { HttpError } from "../http.js";
 
 export const routes = {
@@ -11,21 +10,12 @@ export const routes = {
 const R2_FREE_BYTES = 10e9; // Cloudflare R2 free tier
 
 async function getOffline(request, env) {
-    const [list, used, availability] = await Promise.all([
-        backups.list(env),
-        backups.used(env),
-        // the screen still works without it
-        hetzner.availability(env).catch((err) => {
-            console.log(`Availability not loaded: ${err.message}`);
-            return null;
-        }),
-    ]);
+    const [list, used] = await Promise.all([backups.list(env), backups.used(env)]);
     return {
         // The last server was deleted right after its backup
         deletedAt: list[0]?.uploaded ?? null,
         r2: { used, limit: R2_FREE_BYTES },
         backups: list,
-        availability,
     };
 }
 

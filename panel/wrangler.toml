@@ -35,7 +35,7 @@ SERVER_NAME = "mc"
 # Branch the server clones its code (agent, scripts) from; must match the deployed panel
 REPO_BRANCH = "simplify"
 
-# Defaults when the site does not choose
+# Fallback when Hetzner availability cannot be read; otherwise the cheapest type in Helsinki wins
 SERVER_TYPE = "cpx12"
 LOCATION = "nbg1"
 FIREWALL_NAME = "dev-fw"

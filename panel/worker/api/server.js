@@ -73,32 +73,27 @@ async function getServer(request, env) {
     return data;
 }
 
-const TYPES = ["cx23", "cpx12", "cpx22"];
-const LOCATIONS = ["nbg1", "fsn1", "hel1"];
-
-// { save, type, location } from the site; each falls back to the default
+// { save } from the site; the type and location are picked automatically
 async function start(request, env) {
     const body = await request.json().catch(() => ({}));
-    const type = body.type ?? env.SERVER_TYPE;
-    const location = body.location ?? env.LOCATION;
     const save = body.save ?? null;
-    if (!TYPES.includes(type)) throw new HttpError(400, `unknown server type ${type}`);
-    if (!LOCATIONS.includes(location)) throw new HttpError(400, `unknown location ${location}`);
     if (save && !(await backups.exists(env, save))) throw new HttpError(400, `no backup ${save}`);
     if (await hetzner.findServer(env)) {
         throw new HttpError(409, "server already exists");
     }
+    const choice = await hetzner.pickServer(env);
+    if (!choice) throw new HttpError(503, "no server type available");
     // The log names the save even when start.sh will pick the latest itself
     const saveName = save ?? (await backups.list(env))[0]?.key ?? "-";
     const at = new Date().toISOString();
-    const server = await hetzner.createServer(env, { type, location, save });
+    const server = await hetzner.createServer(env, { ...choice, save });
     const ip = server.public_net.ipv4.ip;
     await dns.setMinecraftIp(env, ip);
     await log.opened(env, {
         kind: "start",
         at,
-        fields: [["Host", type], ["Region", log.REGIONS[location] ?? location], ["Save", saveName]],
-        lines: log.creationLines(server, type, location, env.MC_HOSTNAME, ip, at),
+        fields: [["Host", choice.type], ["Region", log.REGIONS[choice.location] ?? choice.location], ["Save", saveName]],
+        lines: log.creationLines(server, choice.type, choice.location, env.MC_HOSTNAME, ip, at),
         serverId: server.id,
     });
     return { state: "creating" };
