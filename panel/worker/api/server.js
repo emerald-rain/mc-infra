@@ -10,13 +10,15 @@ export const routes = {
     "GET /api/server": getServer,
     "POST /api/server/start": start,
     "POST /api/server/stop": stop,
-    "POST /api/server/plan": setPlan,
     "GET /api/console": getConsole,
     "POST /api/console": sendCommand,
 };
 
 const STOPPABLE = ["starting", "online", "stopped", "backup_failed", "start_failed"];
-const REASONS = { now: "shut down now", hour: "before next hour", empty: "when everyone leaves" };
+// States the cron may stop on its own: the server is online or already idle, never in the middle of a start
+const AUTO_STOP = ["online", "stopped", "backup_failed", "start_failed"];
+const EMPTY_MINUTES = 10;
+const HOUR_END_MINUTES = 10;
 
 // One state for the site, from Hetzner and the agent:
 //   none -> creating -> booting -> restoring -> starting -> online -> backing_up -> deleting -> none
@@ -64,7 +66,6 @@ async function getServer(request, env) {
         };
     }
     if (status) {
-        data.plan = status.plan ?? null;
         data.players = status.players ?? null;
         data.metrics = status.metrics ?? null;
     }
@@ -113,24 +114,14 @@ async function stop(request, env) {
         await deleteServer(env, server, state);
         return { state: "deleting" };
     }
-    await stopNow(env, "now", [{ text: "Shutdown requested: now" }]);
+    await stopNow(env);
     return { state: "backing_up" };
 }
 
-// plan: "now" | "hour" | "empty"; notes: lines for the log before the script's output
-async function stopNow(env, plan, notes) {
-    const res = await agent.stop(env, REASONS[plan], notes);
+async function stopNow(env) {
+    const res = await agent.stop(env);
     if (!res) throw new HttpError(502, "agent unreachable");
     if (res.status !== 202) throw new HttpError(res.status, res.data.error);
-}
-
-// { plan: "hour" | "empty" | null }; null cancels
-async function setPlan(request, env) {
-    const { plan = null } = await request.json().catch(() => ({}));
-    const res = await agent.setPlan(env, plan);
-    if (!res) throw new HttpError(502, "agent unreachable");
-    if (res.status !== 200) throw new HttpError(res.status, res.data.error);
-    return res.data;
 }
 
 async function getConsole(request, env) {
@@ -165,18 +156,13 @@ export async function tick(env) {
         return;
     }
 
-    // The shutdown plan: stop in the last 10 minutes before the next billed hour.
-    // "empty" waits while anyone is online and tries again the next hour.
-    const plan = status?.plan;
-    if (!plan || !STOPPABLE.includes(state) || minutesToNextHour(server.created) > 10) return;
-    const online = status.players?.list.length ?? 0;
-    if (plan === "hour" || online === 0) {
-        console.log(`Shutdown plan "${plan}": stopping, ${online} players online`);
-        await stopNow(env, plan, [
-            { time: status.planAt, text: `Shutdown scheduled: ${REASONS[plan]}` },
-            { text: `Players online: ${online}, stopping before the next billed hour` },
-        ]);
-    }
+    // Stop an empty server in the last 10 minutes before the next billed hour.
+    // Someone online means it keeps running until the next hour; a start in progress is left alone.
+    if (!AUTO_STOP.includes(state) || minutesToNextHour(server.created) > HOUR_END_MINUTES) return;
+    const emptySince = status?.emptySince;
+    if (!emptySince || Date.now() - new Date(emptySince) < EMPTY_MINUTES * 60000) return;
+    console.log(`Auto stop: no players for ${EMPTY_MINUTES}m, stopping server ${server.id}`);
+    await stopNow(env);
 }
 
 // The log keeps this server's sessions, then it goes. A log failure must not keep a paid server.

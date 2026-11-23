@@ -47,8 +47,7 @@
   --green-text: #4ade80;      /* TPS 20.0, Copied, Start text, final "ok" log line */
   --green-bg: #0f2a17;        /* Start button */
   --green-done: #3f8f5c;      /* completed step checkmarks in the log */
-  --amber: #f0bf55;           /* scheduled shutdown, in-progress spinner, "starting" dot */
-  --amber-bg: #2a1f08;        /* scheduled shutdown pill */
+  --amber: #f0bf55;           /* in-progress spinner, "starting" dot */
   --amber-track: #3a2c10;     /* spinner track */
   --amber-note: #d9a441;      /* "older CPU" note on cx23 */
   --red-text: #ff8a80;        /* Shut down */

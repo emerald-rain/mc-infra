@@ -1,7 +1,7 @@
 // Online screen (DESIGN.md §3): players, metrics, address, RCON console, shutdown sheet
 import { api } from "./api.js";
 import { esc, gb, gbTotal, hms, minutesToNextHour, elements } from "./format.js";
-import { PLANS, STOPPABLE, STOPPING, minutesToPlannedStop } from "./states.js";
+import { STOPPABLE, STOPPING } from "./states.js";
 
 const COPIED_MS = 1600;
 
@@ -15,7 +15,6 @@ export function onlineScreen(root, { sheet, refresh, report }) {
   const el = { ...elements(root), ...elements(sheet), sheet };
   let server = null;
   let playersOpen = false;
-  let sheetChoice = "empty";
   let busy = false;
   let consoleKey = "";
 
@@ -216,46 +215,22 @@ export function onlineScreen(root, { sheet, refresh, report }) {
 
   // --- Shutdown sheet ------------------------------------------------------------
 
-  function minutesLeft() {
-    return server?.server ? minutesToNextHour(server.server.createdAt) : 60;
-  }
-
   function renderSheet() {
-    const left = minutesLeft();
-    const inMin = minutesToPlannedStop(left);
+    const left = server?.server ? minutesToNextHour(server.server.createdAt) : 60;
     const count = server?.players?.list.length ?? 0;
     el.sheetMeta.innerHTML =
       `next hour billed in <b>${left}m</b> · <b>${count}</b> ${count === 1 ? "player" : "players"} online`;
-    const side = { now: "now", hour: inMin ? `in ${inMin}m` : "now", empty: `${count} online` };
-    el.sheetOptions.innerHTML = Object.entries(PLANS)
-      .map(([id, p]) =>
-        `<button type="button" class="option" role="radio" aria-checked="${id === sheetChoice}" data-plan="${id}">` +
-        `<span class="radio" aria-hidden="true"></span>` +
-        `<span class="option-text"><span class="option-title">${p.title}</span><span class="option-desc">${p.desc}</span></span>` +
-        `<span class="option-side">${side[id]}</span></button>`)
-      .join("");
-    el.sheetConfirm.textContent = {
-      now: "Shut down now",
-      hour: inMin ? `Shut down in ${inMin}m` : "Shut down now",
-      empty: "Shut down when empty",
-    }[sheetChoice];
-    el.sheetSecondary.textContent = server?.plan ? "Keep running" : "Cancel";
+    el.sheetConfirm.textContent = "Shut down now";
+    el.sheetSecondary.textContent = "Cancel";
     el.sheetConfirm.disabled = el.sheetSecondary.disabled = busy;
   }
 
   function openSheet() {
-    sheetChoice = server?.plan ?? "empty";
     renderSheet();
     el.sheet.hidden = false;
   }
   const closeSheet = () => (el.sheet.hidden = true);
 
-  el.sheetOptions.addEventListener("click", (e) => {
-    const option = e.target.closest("[data-plan]");
-    if (!option) return;
-    sheetChoice = option.dataset.plan;
-    renderSheet();
-  });
   el.sheetClose.addEventListener("click", closeSheet);
   document.addEventListener("keydown", (e) => e.key === "Escape" && closeSheet());
 
@@ -274,15 +249,8 @@ export function onlineScreen(root, { sheet, refresh, report }) {
     refresh();
   }
 
-  // "Keep running" cancels the plan, "Cancel" just closes
-  el.sheetSecondary.addEventListener("click", () => {
-    if (server?.plan) act("POST", "/server/plan", { plan: null });
-    else closeSheet();
-  });
-  el.sheetConfirm.addEventListener("click", () => {
-    if (sheetChoice === "now") act("POST", "/server/stop");
-    else act("POST", "/server/plan", { plan: sheetChoice });
-  });
+  el.sheetSecondary.addEventListener("click", closeSheet);
+  el.sheetConfirm.addEventListener("click", () => act("POST", "/server/stop"));
 
   function showError(text) {
     el.error.textContent = text;

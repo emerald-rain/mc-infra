@@ -17,16 +17,15 @@ async function call(env, method, path, body) {
     }
 }
 
-// { container, health, jobs: { stop: { status, log } }, plan, players, metrics }, or null if unreachable
+// { container, health, jobs: { stop: { status, log } }, players, metrics, emptySince }, or null if unreachable
 export async function status(env) {
     const res = await call(env, "GET", "/status");
     return res?.status === 200 ? res.data : null;
 }
 
 // Starts stop.sh (stop Minecraft, back up the world).
-// reason goes to the log; notes: [{ time, text }] lines put before the script's output
-export async function stop(env, reason, notes = []) {
-    return await call(env, "POST", "/stop", { reason, notes });
+export async function stop(env) {
+    return await call(env, "POST", "/stop");
 }
 
 // { agentStarted, jobs: { start, stop } with timestamped lines, onlineAt }, or null
@@ -44,9 +43,4 @@ export async function console(env) {
 // Runs a server command through RCON
 export async function command(env, text) {
     return await call(env, "POST", "/console", { command: text });
-}
-
-// Shutdown plan: "hour", "empty" or null; the cron carries it out
-export async function setPlan(env, plan) {
-    return await call(env, "POST", "/plan", { plan });
 }

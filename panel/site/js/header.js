@@ -1,13 +1,12 @@
 // Shared header: chick link, status pill and the action button (DESIGN.md §2)
 import { esc, duration, ago, elapsed, minutesToNextHour, elements } from "./format.js";
-import { STATES, STOPPABLE, STARTING, minutesToPlannedStop } from "./states.js";
+import { STATES, STOPPABLE, STARTING } from "./states.js";
 
 const RING = 28.3; // circumference of the r=4.5 billing ring
 
 export function header(root, { onShutdown, onStart }) {
   const el = elements(root);
   el.shutdown.addEventListener("click", onShutdown);
-  el.planned.addEventListener("click", onShutdown);
   el.start.addEventListener("click", onStart);
 
   function part(html, cls = "") {
@@ -52,7 +51,7 @@ export function header(root, { onShutdown, onStart }) {
     el.logo.setAttribute("aria-label", screen === "logs" ? "Back to the panel" : "Kladnash: open server logs");
 
     el.status.hidden = !server;
-    el.shutdown.hidden = el.planned.hidden = el.start.hidden = true;
+    el.shutdown.hidden = el.start.hidden = true;
     if (!server) return;
 
     const idle = server.state === "none";
@@ -60,17 +59,7 @@ export function header(root, { onShutdown, onStart }) {
     if (screen === "online" && server.state === "online" && server.server) el.status.innerHTML = onlinePill(server);
     else el.status.innerHTML = stagePill(server, screen);
 
-    if (screen !== "logs" && STOPPABLE.includes(server.state)) {
-      const plan = server.plan;
-      if (plan && server.server) {
-        const text = plan === "hour" ? `Stops in ${minutesToPlannedStop(minutesToNextHour(server.server.createdAt))}m` : "Stops if empty";
-        el.plannedText.textContent = text;
-        el.planned.setAttribute("aria-label", `Shutdown scheduled: ${text}. Change or cancel`);
-        el.planned.hidden = false;
-      } else {
-        el.shutdown.hidden = false;
-      }
-    }
+    if (screen !== "logs" && STOPPABLE.includes(server.state)) el.shutdown.hidden = false;
     if (screen === "offline" && idle) el.start.hidden = false;
   };
 }

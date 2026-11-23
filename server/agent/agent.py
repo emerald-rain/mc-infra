@@ -20,7 +20,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 AGENT_TOKEN = os.environ["AGENT_TOKEN"]
 PORT = int(os.environ.get("AGENT_PORT", "8080"))
 HERE = os.path.dirname(os.path.abspath(__file__))
-PLAN_FILE = "/var/tmp/mc-agent-plan.json"  # survives an agent restart, dies with the server
 SAMPLE_SECONDS = 10
 CPU_POINTS = 61  # 10 minutes of samples for the panel's CPU chart
 
@@ -29,6 +28,7 @@ class Job:
     """A script that runs in the background, one copy at a time.
 
     status: idle -> running -> done | failed. lines: its output with UTC times, for the panel's log.
+    The same output goes to the journal, so it is still there if the panel stops showing it.
     """
 
     def __init__(self, script):
@@ -60,15 +60,21 @@ class Job:
             proc = subprocess.Popen([self.script], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             for line in proc.stdout:
                 if line.strip():
-                    self.lines.append({"time": utc_now(), "text": line.rstrip()})
-                    del self.lines[:-300]
+                    self._add(line.rstrip())
             status = "done" if proc.wait() == 0 else "failed"
         except Exception as err:
-            self.lines.append({"time": utc_now(), "text": f"ERROR: {self.script} did not run: {err}"})
+            self._add(f"ERROR: {self.script} did not run: {err}")
             status = "failed"
         # Publish the end time before the terminal status, so the panel never sees "done" without it
         self.finished = utc_now()
         self.status = status
+        print(f"{self.script}: {status}", flush=True)
+
+    def _add(self, text):
+        self.lines.append({"time": utc_now(), "text": text})
+        del self.lines[:-300]
+        # The journal keeps the output for debugging without the panel's log.
+        print(text, flush=True)
 
     def to_json(self, lines=False):
         data = {"status": self.status, "log": "\n".join(l["text"] for l in self.lines[-40:])}
@@ -130,7 +136,8 @@ class Sampler:
         self.tps = None
         self._joined = {}     # player name -> time first seen online
         self._last_cpu = None
-        self.online_at = None   # when the container first became healthy
+        self.online_at = None     # when the container first became healthy
+        self.empty_since = None   # when the server last became empty; None means unknown or someone is online
 
     def start(self):
         threading.Thread(target=self._loop, daemon=True).start()
@@ -156,6 +163,7 @@ class Sampler:
         container, health = container_state()
         if container != "running":
             self.players, self.tps, self._joined = None, None, {}
+            self.empty_since = self.empty_since or utc_now()
             return
         if health == "healthy":
             self.online_at = self.online_at or utc_now()
@@ -167,7 +175,9 @@ class Sampler:
         out = rcon("list")
         match = re.search(r"(\d+) of a max of (\d+) players online:?(.*)", out or "")
         if not match:
+            # Unknown, so the panel must not auto-stop the server
             self.players = None
+            self.empty_since = None
             return
         names = [n.strip() for n in match.group(3).split(",") if n.strip()]
         now = time.time()
@@ -176,6 +186,7 @@ class Sampler:
             "max": int(match.group(2)),
             "list": [{"name": n, "minutes": int((now - t) // 60)} for n, t in self._joined.items()],
         }
+        self.empty_since = None if names else self.empty_since or utc_now()
 
     def _sample_tps(self):
         # "Target tick rate: 20.0 per second. Average time per tick: 3.2ms (Target: 50.0ms)"
@@ -204,15 +215,6 @@ def memory():
 def disk():
     usage = shutil.disk_usage("/")
     return {"used": usage.used, "total": usage.total}
-
-
-def read_plan():
-    """{"plan": "hour" | "empty" | None, "at": when it was set}"""
-    try:
-        with open(PLAN_FILE) as f:
-            return json.load(f)
-    except (OSError, ValueError):
-        return {"plan": None, "at": None}
 
 
 # Commands sent from the panel, shown in the console between the server's own lines
@@ -252,11 +254,10 @@ def console_lines(tail=100):
 def get_status(body):
     container, health = container_state()
     jobs = {name: job.to_json() for name, job in JOBS.items()}
-    plan = read_plan()
     metrics = {"ram": memory(), "disk": disk(), "tps": SAMPLER.tps, "cpu": list(SAMPLER.cpu)}
     return 200, {
         "container": container, "health": health, "jobs": jobs,
-        "plan": plan.get("plan"), "planAt": plan.get("at"), "players": SAMPLER.players, "metrics": metrics,
+        "players": SAMPLER.players, "metrics": metrics, "emptySince": SAMPLER.empty_since,
     }
 
 
@@ -283,16 +284,6 @@ def post_console(body):
     return 200, {"output": output}
 
 
-def post_plan(body):
-    """Shutdown plan: "hour", "empty" or None. The panel's cron carries it out."""
-    plan = body.get("plan")
-    if plan not in ("hour", "empty", None):
-        return 400, {"error": f"unknown plan {plan}"}
-    with open(PLAN_FILE, "w") as f:
-        json.dump({"plan": plan, "at": utc_now()}, f)
-    return 200, {"plan": plan}
-
-
 def get_log(body):
     """Everything the panel's log needs from this server."""
     return 200, {
@@ -303,8 +294,7 @@ def get_log(body):
 
 
 def post_stop(body):
-    notes = body.get("notes") if isinstance(body.get("notes"), list) else []
-    if not JOBS["stop"].start(reason=body.get("reason"), notes=[n for n in notes if isinstance(n, dict)]):
+    if not JOBS["stop"].start():
         return 409, {"error": "stop already running"}
     # The backup takes minutes; the panel follows it via GET /status
     return 202, {"started": "stop"}
@@ -315,7 +305,6 @@ ROUTES = {
     ("POST", "/stop"): post_stop,
     ("GET", "/console"): get_console,
     ("POST", "/console"): post_console,
-    ("POST", "/plan"): post_plan,
     ("GET", "/log"): get_log,
 }
 

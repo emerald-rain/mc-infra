@@ -71,8 +71,6 @@ a { color: inherit; }
 }
 .btn:disabled { cursor: default; opacity: .6; }
 .btn-stop { background: var(--red-bg); color: var(--red-text); }
-.btn-planned { display: flex; align-items: center; gap: var(--gap-tight); padding: 0 12px 0 10px; background: var(--amber-bg); color: var(--amber); }
-.btn-planned .dot { background: var(--amber); }
 .btn-start { padding: 0 14px; background: var(--green-bg); color: var(--green-text); }
 
 /* --- Page column -------------------------------------------------------- */
@@ -226,18 +224,6 @@ a { color: inherit; }
 .sheet-title { display: flex; flex-direction: column; gap: 4px; padding: 0 1px; }
 .sheet-title h2 { font-size: var(--fs-15); }
 .sheet-title b { color: var(--text); font-weight: var(--fw-regular); }
-.options { display: flex; flex-direction: column; gap: var(--gap-tight); }
-.option {
-  display: flex; align-items: flex-start; gap: var(--gap-pill); width: 100%;
-  padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-option);
-  background: var(--surface); text-align: left; font-family: var(--font-ui);
-}
-.option[aria-checked="true"] { border-color: var(--border-selected); background: var(--surface-selected); }
-.option .radio { margin-top: 1px; }
-.option-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.option-title { font-size: var(--fs-13); font-weight: var(--fw-semibold); }
-.option-desc { font-size: var(--fs-12); line-height: 1.35; color: var(--text-3); }
-.option-side { flex: 0 0 auto; font-family: var(--font-mono); font-size: var(--fs-11); color: var(--text-2); white-space: nowrap; }
 .sheet-buttons { display: flex; gap: 8px; }
 .sheet-buttons .btn { height: var(--h-sheet-button); padding: 1px 6px; font-size: var(--fs-13); }
 .btn-secondary { flex: 1 1 0; border: 1px solid var(--border); background: var(--surface-button); color: var(--text); }
