@@ -28,12 +28,6 @@ export async function stop(env) {
     return await call(env, "POST", "/stop");
 }
 
-// { agentStarted, jobs: { start, stop } with timestamped lines, onlineAt }, or null
-export async function log(env) {
-    const res = await call(env, "GET", "/log");
-    return res?.status === 200 ? res.data : null;
-}
-
 // { lines: [{ time, text, command }] }, or null
 export async function console(env) {
     const res = await call(env, "GET", "/console");

@@ -27,30 +27,23 @@ CPU_POINTS = 61  # 10 minutes of samples for the panel's CPU chart
 class Job:
     """A script that runs in the background, one copy at a time.
 
-    status: idle -> running -> done | failed. lines: its output with UTC times, for the panel's log.
-    The same output goes to the journal, so it is still there if the panel stops showing it.
+    status: idle -> running -> done | failed. Its output goes to the journal for debugging.
     """
 
     def __init__(self, script):
         self.script = os.path.join(HERE, script)
         self.status = "idle"
         self.lines = []
-        self.started = self.finished = None
-        self.reason = None
         self._lock = threading.Lock()
 
-    def start(self, reason=None, notes=()):
-        """Starts the script; False if it is already running.
-
-        notes: [{time, text}] the panel puts before the output, e.g. why the server stops.
-        """
+    def start(self):
+        """Starts the script; False if it is already running."""
         # The lock makes check-and-set atomic, so two quick requests cannot both start it
         with self._lock:
             if self.status == "running":
                 return False
-            self.status, self.reason = "running", reason
-            self.started, self.finished = utc_now(), None
-            self.lines = [{"time": str(n.get("time") or self.started), "text": str(n.get("text", ""))} for n in notes]
+            self.status = "running"
+            self.lines = []
         threading.Thread(target=self._run, daemon=True).start()
         return True
 
@@ -65,29 +58,22 @@ class Job:
         except Exception as err:
             self._add(f"ERROR: {self.script} did not run: {err}")
             status = "failed"
-        # Publish the end time before the terminal status, so the panel never sees "done" without it
-        self.finished = utc_now()
         self.status = status
         print(f"{self.script}: {status}", flush=True)
 
     def _add(self, text):
         self.lines.append({"time": utc_now(), "text": text})
         del self.lines[:-300]
-        # The journal keeps the output for debugging without the panel's log.
         print(text, flush=True)
 
-    def to_json(self, lines=False):
-        data = {"status": self.status, "log": "\n".join(l["text"] for l in self.lines[-40:])}
-        if lines:
-            data.update(lines=self.lines, started=self.started, finished=self.finished, reason=self.reason)
-        return data
+    def to_json(self):
+        return {"status": self.status, "log": "\n".join(l["text"] for l in self.lines[-40:])}
 
 
 JOBS = {
     "start": Job("start.sh"),  # restore the world from R2, start Minecraft; runs when the agent starts
     "stop": Job("stop.sh"),    # stop Minecraft, back up the world to R2
 }
-AGENT_STARTED = None  # set in main, "Agent connected" in the panel's log
 
 
 def container_state():
@@ -136,7 +122,6 @@ class Sampler:
         self.tps = None
         self._joined = {}     # player name -> time first seen online
         self._last_cpu = None
-        self.online_at = None     # when the container first became healthy
         self.empty_since = None   # when the server last became empty; None means unknown or someone is online
 
     def start(self):
@@ -160,13 +145,11 @@ class Sampler:
                 self.cpu.append(round(100 * (1 - d_idle / d_total), 1))
         self._last_cpu = (idle, total)
 
-        container, health = container_state()
+        container, _ = container_state()
         if container != "running":
             self.players, self.tps, self._joined = None, None, {}
             self.empty_since = self.empty_since or utc_now()
             return
-        if health == "healthy":
-            self.online_at = self.online_at or utc_now()
         self._sample_players()
         self._sample_tps()
 
@@ -284,15 +267,6 @@ def post_console(body):
     return 200, {"output": output}
 
 
-def get_log(body):
-    """Everything the panel's log needs from this server."""
-    return 200, {
-        "agentStarted": AGENT_STARTED,
-        "jobs": {name: job.to_json(lines=True) for name, job in JOBS.items()},
-        "onlineAt": SAMPLER.online_at,
-    }
-
-
 def post_stop(body):
     if not JOBS["stop"].start():
         return 409, {"error": "stop already running"}
@@ -305,7 +279,6 @@ ROUTES = {
     ("POST", "/stop"): post_stop,
     ("GET", "/console"): get_console,
     ("POST", "/console"): post_console,
-    ("GET", "/log"): get_log,
 }
 
 
@@ -343,7 +316,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    AGENT_STARTED = utc_now()
     # First boot: restore the world. After a reboot the container exists and is left alone.
     if container_state()[0] == "missing":
         JOBS["start"].start()

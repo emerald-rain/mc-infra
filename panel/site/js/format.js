@@ -1,4 +1,4 @@
-// Text formats shared by every screen (DESIGN.md §1: compact durations, UTC in the log)
+// Text formats shared by every screen (DESIGN.md §1: compact durations, UTC in the console)
 
 // Escapes text for innerHTML
 export function esc(value) {
@@ -38,12 +38,6 @@ const pad = (n) => String(n).padStart(2, "0");
 export function hms(date) {
   const d = new Date(date);
   return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
-}
-
-// "2026-11-15 08:51:04 UTC"
-export function fullUtc(date) {
-  const d = new Date(date);
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${hms(d)} UTC`;
 }
 
 // Seconds since a date as "+4:35"

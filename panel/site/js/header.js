@@ -1,4 +1,4 @@
-// Shared header: chick link, status pill and the action button (DESIGN.md §2)
+// Shared header: chick, status pill and the action button (DESIGN.md §2)
 import { esc, duration, ago, elapsed, minutesToNextHour, elements } from "./format.js";
 import { STATES, STOPPABLE, STARTING } from "./states.js";
 
@@ -32,34 +32,28 @@ export function header(root, { onShutdown, onStart }) {
   }
 
   // A stage of the server's life: "● Restoring world  +2:45"
-  function stagePill(server, screen) {
+  function stagePill(server) {
     const { label, dot } = STATES[server.state] ?? { label: server.state, dot: "ring" };
-    // The log shows "no server" as a plain grey dot, the panel as a hollow ring
-    const dotClass = dot === "ring" && screen === "logs" ? "" : dot;
     let tail = "";
     if (server.state === "none") tail = server.deletedAt ? ago(server.deletedAt) : "";
     // "+4:35" while starting, uptime after that
     else if (STARTING.includes(server.state) && server.server) tail = elapsed(server.server.createdAt);
     else if (server.server) tail = duration((Date.now() - new Date(server.server.createdAt)) / 60000);
-    return part(`<span class="dot ${dotClass}" aria-hidden="true"></span><b>${esc(label)}</b>`) + (tail ? `<span>${tail}</span>` : "");
+    return part(`<span class="dot ${dot}" aria-hidden="true"></span><b>${esc(label)}</b>`) + (tail ? `<span>${tail}</span>` : "");
   }
 
-  // screen: "online" | "offline" | "logs"; server: GET /api/server, null until it answers
+  // screen: "online" | "offline"; server: GET /api/server, null until it answers
   return function render(screen, server) {
-    root.classList.toggle("on-logs", screen === "logs");
-    el.logo.href = screen === "logs" ? "#" : "#logs";
-    el.logo.setAttribute("aria-label", screen === "logs" ? "Back to the panel" : "Kladnash: open server logs");
-
     el.status.hidden = !server;
     el.shutdown.hidden = el.start.hidden = true;
     if (!server) return;
 
     const idle = server.state === "none";
-    el.status.classList.toggle("idle", idle && screen !== "logs");
+    el.status.classList.toggle("idle", idle);
     if (screen === "online" && server.state === "online" && server.server) el.status.innerHTML = onlinePill(server);
-    else el.status.innerHTML = stagePill(server, screen);
+    else el.status.innerHTML = stagePill(server);
 
-    if (screen !== "logs" && STOPPABLE.includes(server.state)) el.shutdown.hidden = false;
+    if (STOPPABLE.includes(server.state)) el.shutdown.hidden = false;
     if (screen === "offline" && idle) el.start.hidden = false;
   };
 }
